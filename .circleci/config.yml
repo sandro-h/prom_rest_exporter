@@ -1,0 +1,38 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/vary/prom_rest_exporter
+    environment:
+
+    docker:
+      - image: circleci/golang:1.11.2-stretch
+
+    steps:
+      - checkout
+      - run: go get github.com/stretchr/testify
+
+      - run:
+          name: Install build tools
+          command: sudo apt install  autoconf make libtool flex bison
+
+      - run:
+          name: Download jq master
+          command: git clone https://github.com/stedolan/jq.git jq-master
+
+      - run:
+          name: Build jq
+          working_directory: /go/src/vary/prom_rest_exporter/jq-master
+          command: |
+            autoreconf -fi && \
+            mkdir -p build/usr/local && \
+            ./configure --with-oniguruma=builtin --prefix=$PWD/build/usr/local && \
+            make -j8 && \
+            make install && \
+            rm -f build/usr/local/lib/*.so*
+
+      - run:
+          name: Test
+          command: go test -v ./...
+      - run:
+          name: Build
+          command: go build -v

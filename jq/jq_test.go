@@ -20,6 +20,7 @@ func TestRunJqProgram(t *testing.T) {
 		]`)
 
 	expected := [...]string{"world", "heheehe"}
+	assert.Equal(t, len(expected), len(results), "should have same length")
 	for i := range results {
 		assert.Equal(t, expected[i], results[i].ToString())
 	}
