@@ -23,6 +23,7 @@ jobs:
           name: Build jq
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
+            git submodule update --init && \
             autoreconf -fi && \
             mkdir -p build/usr/local && \
             ./configure --with-oniguruma=builtin --prefix=$PWD/build/usr/local && \
