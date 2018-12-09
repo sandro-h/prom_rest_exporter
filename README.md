@@ -1,5 +1,7 @@
 ### prom_rest_exporter
 
+[![CircleCI](https://circleci.com/bb/mentalvary/prom_rest_exporter.svg?style=svg)](https://circleci.com/bb/mentalvary/prom_rest_exporter)
+
 ## intro
 
 goal is a tool that translate arbitrary application rest endpoints to a /metrics endpoint
