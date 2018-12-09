@@ -59,4 +59,7 @@ jobs:
 
       - store_artifacts:
           path: prom_rest_exporter
-          destination: binaries/prom_rest_exporter-linux-amd64
+          destination: binaries/prom_rest_exporter
+      - store_artifacts:
+          path: prom_rest_exporter.exe
+          destination: binaries/prom_rest_exporter.exe
