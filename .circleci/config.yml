@@ -15,35 +15,49 @@ jobs:
           name: Install build tools
           command: sudo apt install  autoconf make libtool flex bison gcc-mingw-w64-x86-64
 
+      - restore_cache:
+          name: Restore jq cache
+          key: v1-jq
+
       - run:
           name: Download jq master
-          command: git clone https://github.com/stedolan/jq.git jq-master
+          command: if [ ! -d jq-master ]; then git clone https://github.com/stedolan/jq.git jq-master; fi
 
       - run:
           name: Build jq for windows
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
-            git submodule update --init && \
-            autoreconf -fi && \
-            ./configure && \
-            make distclean && \
-            CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
-              --disable-shared \
-              --enable-static \
-              --enable-all-static \
-              --target=win64-x86_64 \
-              --host=x86_64-w64-mingw32 \
-              --with-oniguruma=builtin
+            if [ ! -d jq-master/build/win64 ]; then
+              git submodule update --init && \
+              autoreconf -fi && \
+              ./configure && \
+              make distclean && \
+              CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
+                --disable-shared \
+                --enable-static \
+                --enable-all-static \
+                --target=win64-x86_64 \
+                --host=x86_64-w64-mingw32 \
+                --with-oniguruma=builtin
+            fi
 
       - run:
           name: Build jq for linux
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
-            autoreconf -fi && \
-            ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local && \
-            make -j8 && \
-            make install && \
-            rm -f build/linux/usr/local/lib/*.so*
+            if [ ! -d jq-master/build/linux ]; then
+              autoreconf -fi && \
+              ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local && \
+              make -j8 && \
+              make install && \
+              rm -f build/linux/usr/local/lib/*.so*
+            fi
+
+      - save_cache:
+          name: Save jq cache
+          paths:
+            - jq-master
+          key: v1-jq
 
       - run:
           name: Test
