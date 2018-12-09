@@ -13,27 +13,50 @@ jobs:
 
       - run:
           name: Install build tools
-          command: sudo apt install  autoconf make libtool flex bison
+          command: sudo apt install  autoconf make libtool flex bison gcc-mingw-w64-x86-64
 
       - run:
           name: Download jq master
           command: git clone https://github.com/stedolan/jq.git jq-master
 
       - run:
-          name: Build jq
+          name: Build jq for windows
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
             git submodule update --init && \
             autoreconf -fi && \
-            mkdir -p build/usr/local && \
-            ./configure --with-oniguruma=builtin --prefix=$PWD/build/usr/local && \
+            ./configure && \
+            make distclean && \
+            CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
+              --disable-shared \
+              --enable-static \
+              --enable-all-static \
+              --target=win64-x86_64 \
+              --host=x86_64-w64-mingw32 \
+              --with-oniguruma=builtin
+
+      - run:
+          name: Build jq for linux
+          working_directory: /go/src/vary/prom_rest_exporter/jq-master
+          command: |
+            autoreconf -fi && \
+            ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local && \
             make -j8 && \
             make install && \
-            rm -f build/usr/local/lib/*.so*
+            rm -f build/linux/usr/local/lib/*.so*
 
       - run:
           name: Test
           command: go test -v ./...
+
       - run:
-          name: Build
+          name: Build for linux
           command: go build -v
+
+      - run:
+          name: Build for windows
+          command: GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -v
+
+      - store_artifacts:
+          path: prom_rest_exporter
+          destination: binaries/prom_rest_exporter-linux-amd64
