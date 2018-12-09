@@ -27,7 +27,7 @@ jobs:
           name: Build jq for windows
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
-            if [ ! -d jq-master/build/win64 ]; then
+            if [ ! -d build/win64 ]; then
               git submodule update --init && \
               autoreconf -fi && \
               ./configure && \
@@ -45,7 +45,7 @@ jobs:
           name: Build jq for linux
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
-            if [ ! -d jq-master/build/linux ]; then
+            if [ ! -d build/linux ]; then
               autoreconf -fi && \
               ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local && \
               make -j8 && \
