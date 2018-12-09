@@ -21,9 +21,7 @@ https://github.com/ashb/jqrepl
 c bindings in golang:  
 https://golang.org/cmd/cgo/
 
-### cross-compile jq for windows, on linux windows subsystem
-
-https://github.com/stedolan/jq/wiki/Cross-compilation
+### Compiling jq
 
 ```
 git clone https://github.com/stedolan/jq.git jq-master
@@ -38,7 +36,20 @@ packages:
 sudo apt-get install autoconf make libtool flex bison gcc-mingw-w64-x86-64
 ```
 
-compiling:
+#### compile for linux
+
+```
+autoreconf -fi
+./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local
+make -j8
+make install
+# Remove so files to statically link
+rm -f build/linux/usr/local/lib/*.so*
+```
+
+#### cross-compile for windows
+
+https://github.com/stedolan/jq/wiki/Cross-compilation
 
 ```
 autoreconf -fi
