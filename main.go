@@ -1,23 +1,35 @@
 package main
 
-import "vary/prom_rest_exporter/jq"
+import (
+	"io/ioutil"
+	"net/http"
+	"vary/prom_rest_exporter/jq"
+)
 
 func main() {
-
 	jqInst := jq.New()
 	defer jqInst.Close()
 
-	jqInst.CompileProgram(".[] | select(.foo % 2 == 0)")
+	jqInst.CompileProgram("[.data[].last_name] | length")
 
-	results := jqInst.ProcessInput(
-		`[
-			{"foo": 7, "bar": "helloooo"},
-			{"foo": 8, "bar": "world2"},
-			{"foo": 9, "bar": "wadup"},
-			{"foo": 10, "bar": "heheehe"}
-		]`)
+	input, _ := Fetch("https://reqres.in/api/users")
+
+	results := jqInst.ProcessInput(input)
 
 	for _, r := range results {
 		r.PrettyPrint()
 	}
+}
+
+// Fetch calls the url and returns the response as a string
+func Fetch(url string) (string, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }

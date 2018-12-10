@@ -13,7 +13,7 @@ import "C"
 import "unsafe"
 import "fmt"
 
-// Jq represents a a Jq state
+// Jq represents a Jq state
 type Jq struct {
 	state *C.struct_jq_state
 }
