@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"vary/prom_rest_exporter/jq"
@@ -10,7 +11,11 @@ func main() {
 	jqInst := jq.New()
 	defer jqInst.Close()
 
-	jqInst.CompileProgram("[.data[].last_name] | length")
+	err := jqInst.CompileProgram("[.data[].last_name] | length")
+	if err != nil {
+		fmt.Printf("Compile error: %s", err)
+		return
+	}
 
 	input, _ := Fetch("https://reqres.in/api/users")
 

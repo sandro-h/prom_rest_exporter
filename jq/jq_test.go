@@ -25,3 +25,11 @@ func TestRunJqProgram(t *testing.T) {
 		assert.Equal(t, expected[i], results[i].ToString())
 	}
 }
+
+func TestCompileInvalidProgram(t *testing.T) {
+	jqInst := New()
+	defer jqInst.Close()
+	err := jqInst.CompileProgram(".(]")
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "jq: error: syntax error, unexpected")
+}
