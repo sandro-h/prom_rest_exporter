@@ -1,0 +1,11 @@
+endpoints:
+  - url: https://reqres.in/api/users
+    metrics:
+      - name: user_count
+        description: Number of users
+        type: gauge
+        selector: "[.data[].last_name] | length"
+      - name: user_count_total
+        description: Total number of users
+        type: gauge
+        selector: ".total"

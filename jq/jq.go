@@ -116,6 +116,16 @@ func (jq *Jq) CompileProgram(prog string) error {
 
 // ProcessInput runs the previously compiled program of the Jq instance on the input
 func (jq *Jq) ProcessInput(input string) ([]*Jv, error) {
+	return jq.processInput(input, false)
+}
+
+// ProcessInputFirstOnly runs the previously compiled program of the Jq instance on the input
+// and only returns the first completed result.
+func (jq *Jq) ProcessInputFirstOnly(input string) ([]*Jv, error) {
+	return jq.processInput(input, true)
+}
+
+func (jq *Jq) processInput(input string, firstOnly bool) ([]*Jv, error) {
 	results := make([]*Jv, 0)
 	flags := C.int(0)
 
@@ -129,6 +139,9 @@ func (jq *Jq) ProcessInput(input string) ([]*Jv, error) {
 	res := C.jq_next(jq.state)
 	for C.jv_is_valid(res) != 0 {
 		results = append(results, &Jv{res})
+		if firstOnly {
+			break
+		}
 		res = C.jq_next(jq.state)
 	}
 
@@ -150,6 +163,18 @@ func parseInput(input string) (*Jv, error) {
 // Jv represents a Jq json value (jv)
 type Jv struct {
 	jv C.jv
+}
+
+func (jv *Jv) IsNumber() bool {
+	return C.jv_get_kind(jv.jv) == C.JV_KIND_NUMBER
+}
+
+func (jv *Jv) ToNumber() interface{} {
+	dbl := C.jv_number_value(jv.jv)
+	if C.jv_is_integer(jv.jv) == 0 {
+		return float64(dbl)
+	}
+	return int(dbl)
 }
 
 func (jv *Jv) _toString(flags C.int) string {

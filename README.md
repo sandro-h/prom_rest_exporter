@@ -60,3 +60,7 @@ make distclean
 # Run it twice if first time you get fatal error: compile.h
 CPPFLAGS=-I$PWD/src scripts/crosscompile win64 --disable-shared --enable-static --enable-all-static --target=win64-x86_64 --host=x86_64-w64-mingw32 --with-oniguruma=builtin
 ```
+
+## prometheus metrics
+
+https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
