@@ -12,9 +12,13 @@ package jq
 void install_jq_error_cb(jq_state *jq, unsigned long long id);
 */
 import "C"
-import "unsafe"
-import "fmt"
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"sync"
+	"sync/atomic"
+	"unsafe"
+)
 
 // Jq represents a Jq state
 type Jq struct {
@@ -25,25 +29,37 @@ type Jq struct {
 
 // Note: you can only set one error handler per jq instance
 
-type JqErrorHandler struct {
+// ErrorCallbackMap keeps a map of error callbacks for jq instances.
+type ErrorCallbackMap struct {
 	nextID    uint64
 	callbacks map[uint64]func(err string)
+	lock      sync.RWMutex
 }
 
-var globalJqErrorHandler = JqErrorHandler{
+var globalErrorCallbacks = ErrorCallbackMap{
 	callbacks: make(map[uint64]func(err string)),
 }
 
-func (eh *JqErrorHandler) addErrorHandler(jq *Jq) {
-	// TODO: not threadsafe
-	jq.errorHandlerID = eh.nextID
-	eh.callbacks[eh.nextID] = jq.handleError
-	C.install_jq_error_cb(jq.state, C.ulonglong(eh.nextID))
-	eh.nextID++
+func (eh *ErrorCallbackMap) addErrorHandler(jq *Jq) {
+	jq.errorHandlerID = atomic.AddUint64(&eh.nextID, 1)
+	C.install_jq_error_cb(jq.state, C.ulonglong(jq.errorHandlerID))
+
+	eh.lock.Lock()
+	defer eh.lock.Unlock()
+	eh.callbacks[jq.errorHandlerID] = jq.handleError
 }
 
-func (eh *JqErrorHandler) removeErrorHandler(jq *Jq) {
+func (eh *ErrorCallbackMap) removeErrorHandler(jq *Jq) {
+	eh.lock.Lock()
+	defer eh.lock.Unlock()
 	delete(eh.callbacks, jq.errorHandlerID)
+}
+
+func (eh *ErrorCallbackMap) getErrorHandler(id uint64) (func(err string), bool) {
+	eh.lock.RLock()
+	defer eh.lock.RUnlock()
+	handler, ok := eh.callbacks[id]
+	return handler, ok
 }
 
 // This function is called for all errors in all jq instances.
@@ -51,7 +67,7 @@ func (eh *JqErrorHandler) removeErrorHandler(jq *Jq) {
 // error handler, based on the id parameter.
 //export goJqErrorHandler
 func goJqErrorHandler(id uint64, jv C.jv) {
-	handler, ok := globalJqErrorHandler.callbacks[id]
+	handler, ok := globalErrorCallbacks.getErrorHandler(id)
 	if ok {
 		err := Jv{C.jq_format_error(jv)}
 		handler(err.ToString())
@@ -62,7 +78,7 @@ func goJqErrorHandler(id uint64, jv C.jv) {
 func New() *Jq {
 	jq := new(Jq)
 	jq.state = C.jq_init()
-	globalJqErrorHandler.addErrorHandler(jq)
+	globalErrorCallbacks.addErrorHandler(jq)
 	return jq
 }
 
@@ -70,7 +86,7 @@ func New() *Jq {
 func (jq *Jq) Close() {
 	C.jq_teardown(&jq.state)
 	jq.state = nil
-	globalJqErrorHandler.removeErrorHandler(jq)
+	globalErrorCallbacks.removeErrorHandler(jq)
 }
 
 func (jq *Jq) handleError(err string) {
