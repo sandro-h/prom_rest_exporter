@@ -53,7 +53,7 @@ func (eh *JqErrorHandler) removeErrorHandler(jq *Jq) {
 func goJqErrorHandler(id uint64, jv C.jv) {
 	handler, ok := globalJqErrorHandler.callbacks[id]
 	if ok {
-		err := Jv{jv}
+		err := Jv{C.jq_format_error(jv)}
 		handler(err.ToString())
 	}
 }
@@ -99,23 +99,36 @@ func (jq *Jq) CompileProgram(prog string) error {
 }
 
 // ProcessInput runs the previously compiled program of the Jq instance on the input
-func (jq *Jq) ProcessInput(input string) []*Jv {
+func (jq *Jq) ProcessInput(input string) ([]*Jv, error) {
 	results := make([]*Jv, 0)
 	flags := C.int(0)
 
-	csInput := C.CString(input)
-	defer C.free(unsafe.Pointer(csInput))
-	jvInput := C.jv_parse(csInput)
-	defer C.jv_free(jvInput)
+	jvInput, err := parseInput(input)
+	if err != nil {
+		return nil, err
+	}
+	defer C.jv_free(jvInput.jv)
 
-	C.jq_start(jq.state, jvInput, flags)
+	C.jq_start(jq.state, jvInput.jv, flags)
 	res := C.jq_next(jq.state)
 	for C.jv_is_valid(res) != 0 {
 		results = append(results, &Jv{res})
 		res = C.jq_next(jq.state)
 	}
 
-	return results
+	return results, nil
+}
+
+func parseInput(input string) (*Jv, error) {
+	csInput := C.CString(input)
+	defer C.free(unsafe.Pointer(csInput))
+
+	jvInput := C.jv_parse(csInput)
+	if C.jv_is_valid(jvInput) == 0 {
+		err := Jv{C.jq_format_error(jvInput)}
+		return nil, errors.New(err.ToString())
+	}
+	return &Jv{jvInput}, nil
 }
 
 // Jv represents a Jq json value (jv)

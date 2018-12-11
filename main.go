@@ -19,7 +19,11 @@ func main() {
 
 	input, _ := Fetch("https://reqres.in/api/users")
 
-	results := jqInst.ProcessInput(input)
+	results, err := jqInst.ProcessInput(input)
+	if err != nil {
+		fmt.Printf("Process error: %s", err)
+		return
+	}
 
 	for _, r := range results {
 		r.PrettyPrint()
