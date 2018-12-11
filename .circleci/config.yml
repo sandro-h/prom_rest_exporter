@@ -9,7 +9,11 @@ jobs:
 
     steps:
       - checkout
-      - run: go get github.com/stretchr/testify
+      - run: 
+          name: Get dependencies
+          command: |
+            go get github.com/stretchr/testify
+            go get gopkg.in/yaml.v2
 
       - run:
           name: Install build tools
