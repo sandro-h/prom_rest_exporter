@@ -7,11 +7,12 @@ import (
 	"vary/prom_rest_exporter/jq"
 )
 
-type ExporterSpec struct {
-	Endpoints []*EndpointSpec
+type EndpointSpec struct {
+	Port    int
+	Targets []*TargetSpec
 }
 
-type EndpointSpec struct {
+type TargetSpec struct {
 	Url     string
 	Metrics []*MetricSpec
 }
@@ -24,39 +25,41 @@ type MetricSpec struct {
 	JqInst      *jq.Jq `yaml:"-"`
 }
 
-func (es EndpointSpec) String() string {
+func (es TargetSpec) String() string {
 	data, _ := yaml.Marshal(es)
 	return string(data)
 }
 
-func ReadSpecFromYamlFile(path string) (*ExporterSpec, error) {
+func ReadSpecFromYamlFile(path string) ([]*EndpointSpec, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	ex := new(ExporterSpec)
-	err = yaml.Unmarshal(data, ex)
+	var endpoints []*EndpointSpec
+	err = yaml.Unmarshal(data, &endpoints)
 	if err != nil {
 		return nil, err
 	}
 
-	ex.compileMetrics()
+	compileMetrics(endpoints)
 	if err != nil {
 		return nil, err
 	}
 
-	return ex, nil
+	return endpoints, nil
 }
 
-func (ex *ExporterSpec) compileMetrics() error {
-	for _, e := range ex.Endpoints {
-		for _, m := range e.Metrics {
-			m.JqInst = jq.New()
-			err := m.JqInst.CompileProgram(m.Selector)
-			if err != nil {
-				fmt.Printf("Metric compile error: %s\n", err.Error())
-				// Handle somehow, either fail fast or ignore and expulse metric
+func compileMetrics(endpoints []*EndpointSpec) error {
+	for _, e := range endpoints {
+		for _, t := range e.Targets {
+			for _, m := range t.Metrics {
+				m.JqInst = jq.New()
+				err := m.JqInst.CompileProgram(m.Selector)
+				if err != nil {
+					fmt.Printf("Metric compile error: %s\n", err.Error())
+					// Handle somehow, either fail fast or ignore and expulse metric
+				}
 			}
 		}
 	}

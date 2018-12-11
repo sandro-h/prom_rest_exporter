@@ -1,11 +1,20 @@
-endpoints:
-  - url: https://reqres.in/api/users
-    metrics:
-      - name: user_count
-        description: Number of users
-        type: gauge
-        selector: "[.data[].last_name] | length"
-      - name: user_count_total
-        description: Total number of users
-        type: gauge
-        selector: ".total"
+---
+
+- port: 9011
+  targets:
+    - url: https://reqres.in/api/users
+      metrics:
+        - name: user_count
+          description: Number of users
+          type: gauge
+          selector: "[.data[].last_name] | length"
+        - name: user_count_total
+          description: Total number of users
+          type: gauge
+          selector: ".total"
+    - url: https://reqres.in/api/unknown
+      metrics:
+        - name: years_total
+          description: Total number of years
+          type: gauge
+          selector: "[.data[].year] | add"

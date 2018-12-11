@@ -24,11 +24,20 @@ func (mv *MetricValue) FormatVal() string {
 	}
 }
 
-func ScrapeEndpoint(e *spec.EndpointSpec) ([]MetricValue, error) {
-	input, _ := fetch(e.Url)
+func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricValue, error) {
+	allValues := make([]MetricValue, 0)
+	for _, t := range ts {
+		values, _ := ScrapeTarget(t)
+		allValues = append(allValues, values...)
+	}
+	return allValues, nil
+}
+
+func ScrapeTarget(t *spec.TargetSpec) ([]MetricValue, error) {
+	input, _ := fetch(t.Url)
 	values := make([]MetricValue, 0)
 	// fmt.Printf("input:%s\n", input)
-	for _, m := range e.Metrics {
+	for _, m := range t.Metrics {
 		results, err := m.JqInst.ProcessInputFirstOnly(input)
 		if err != nil {
 			fmt.Printf("Process error: %s", err)
@@ -44,7 +53,7 @@ func ScrapeEndpoint(e *spec.EndpointSpec) ([]MetricValue, error) {
 	return values, nil
 }
 
-// Fetch calls the url and returns the response as a string
+// Fetch makes a request to the url and returns the response as a string
 func fetch(url string) (string, error) {
 	if strings.HasPrefix(url, "file://") {
 		data, err := ioutil.ReadFile(url[7:])

@@ -27,6 +27,32 @@ func TestRunJqProgram(t *testing.T) {
 	}
 }
 
+func TestRunJqProgramRepeatedly(t *testing.T) {
+	jqInst := New()
+	defer jqInst.Close()
+
+	jqInst.CompileProgram(".[].bar")
+
+	inputs := [...]string{
+		`[{"foo": 7, "bar": "helloooo"},{"foo": 8, "bar": "world"}]`,
+		`[{"foo": 7, "bar": "yaya"},{"foo": 8, "bar": "baba"}]`,
+		`[{"foo": 7, "bar": "foo"},{"foo": 8, "bar": "bar"}]`}
+	outputs := [...][2]string{
+		[2]string{"helloooo", "world"},
+		[2]string{"yaya", "baba"},
+		[2]string{"foo", "bar"}}
+
+	for i := 0; i < 3; i++ {
+		results, err := jqInst.ProcessInput(inputs[i])
+		expected := outputs[i]
+		assert.Nil(t, err)
+		assert.Equal(t, len(expected), len(results), "should have same length")
+		for i := range results {
+			assert.Equal(t, expected[i], results[i].ToString())
+		}
+	}
+}
+
 func TestCompileInvalidProgram(t *testing.T) {
 	jqInst := New()
 	defer jqInst.Close()

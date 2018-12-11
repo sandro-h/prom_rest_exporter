@@ -10,7 +10,7 @@ func main() {
 
 	eps, _ := spec.ReadSpecFromYamlFile("sample.yml")
 
-	vals, _ := scrape.ScrapeEndpoint(eps.Endpoints[0])
+	vals, _ := scrape.ScrapeTargets(eps[0].Targets)
 	for _, val := range vals {
 		if val.Description != "" {
 			fmt.Printf("# HELP %s %s\n", val.Name, val.Description)
