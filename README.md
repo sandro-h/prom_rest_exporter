@@ -64,3 +64,19 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 --disable-shared --enable-static 
 ## prometheus metrics
 
 https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
+
+## todos
+
+- labels  
+should allow static values with `value:` field or based on REST with `selector:`
+- logging
+- multi-metrics  
+  use all results of jq for multiple metrics (with different labels based on each result). each actual metric has a optional sub-selector (default is . if each result is already a number) for the result. e.g.:
+  ```yaml
+    name: bla
+    selector: .data[]
+    sub_selector: .age
+    labels:
+      - name: last_name
+        selector: .last_name
+  ```

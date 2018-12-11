@@ -1,0 +1,7 @@
+endpoints:
+  - url: file://scrape_test_rest.json
+    metrics:
+      - name: user_count
+        selector: "[.data[].last_name] | length"
+      - name: user_count_total
+        selector: ".total"
