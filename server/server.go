@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"io"
 	"net/http"
 	"time"
 	"vary/prom_rest_exporter/scrape"
@@ -32,17 +31,7 @@ func (srv *MetricServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	vals, _ := scrape.ScrapeTargets(srv.Endpoint.Targets)
-	printMetrics(w, vals)
-}
-
-func printMetrics(w io.Writer, vals []scrape.MetricValue) {
 	for _, val := range vals {
-		if val.Description != "" {
-			fmt.Fprintf(w, "# HELP %s %s\n", val.Name, val.Description)
-		}
-		if val.Type != "" {
-			fmt.Fprintf(w, "# TYPE %s %s\n", val.Name, val.Type)
-		}
-		fmt.Fprintf(w, "%s %s\n\n", val.Name, val.FormatVal())
+		val.Print(w)
 	}
 }

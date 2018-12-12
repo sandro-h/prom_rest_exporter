@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -13,7 +14,17 @@ type MetricValue struct {
 	*spec.MetricSpec
 }
 
-func (mv *MetricValue) FormatVal() string {
+func (val *MetricValue) Print(w io.Writer) {
+	if val.Description != "" {
+		fmt.Fprintf(w, "# HELP %s %s\n", val.Name, val.Description)
+	}
+	if val.Type != "" {
+		fmt.Fprintf(w, "# TYPE %s %s\n", val.Name, val.Type)
+	}
+	fmt.Fprintf(w, "%s %s\n\n", val.Name, val.formatVal())
+}
+
+func (mv *MetricValue) formatVal() string {
 	switch v := mv.value.(type) {
 	case int:
 		return fmt.Sprintf("%d", v)

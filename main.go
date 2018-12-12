@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	spec, _ := spec.ReadSpecFromYamlFile("sample.yml")
+	spec, _ := spec.ReadSpecFromYamlFile("prom_rest_exporter.yml")
 
 	for _, ep := range spec.Endpoints {
 		srv := server.MetricServer{Endpoint: ep}
