@@ -14,6 +14,7 @@ jobs:
           command: |
             go get github.com/stretchr/testify
             go get gopkg.in/yaml.v2
+            go get github.com/gorilla/mux
 
       - run:
           name: Install build tools
