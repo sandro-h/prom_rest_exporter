@@ -2,7 +2,7 @@
 endpoints:
   - port: 9011
     targets:
-      - url: https://reqres.in/api/users
+      - url: file://server_test_data.json
         metrics:
           - name: user_count
             description: Number of users
@@ -12,9 +12,3 @@ endpoints:
             description: Total number of users
             type: gauge
             selector: ".total"
-      - url: https://reqres.in/api/apps
-        metrics:
-          - name: app_call_count
-            description: Number of app calls
-            type: counter
-            selector: ".data.calls"

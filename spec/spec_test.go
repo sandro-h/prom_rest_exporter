@@ -6,11 +6,11 @@ import (
 )
 
 func TestReadSpecFromYaml(t *testing.T) {
-	endpoints, err := ReadSpecFromYamlFile("spec_test_spec.yml")
+	spec, err := ReadSpecFromYamlFile("spec_test_spec.yml")
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(endpoints))
+	assert.Equal(t, 1, len(spec.Endpoints))
 
-	endpoint := endpoints[0]
+	endpoint := spec.Endpoints[0]
 	assert.Equal(t, 9011, endpoint.Port)
 	assert.Equal(t, "https://reqres.in/api/users", endpoint.Targets[0].Url)
 	assert.Equal(t, 2, len(endpoint.Targets[0].Metrics))

@@ -7,8 +7,8 @@ import (
 )
 
 func TestScrape(t *testing.T) {
-	eps, _ := spec.ReadSpecFromYamlFile("scrape_test_spec.yml")
-	vals, err := ScrapeTarget(eps[0].Targets[0])
+	spec, _ := spec.ReadSpecFromYamlFile("scrape_test_spec.yml")
+	vals, err := ScrapeTarget(spec.Endpoints[0].Targets[0])
 
 	assert.Nil(t, err)
 

@@ -7,6 +7,10 @@ import (
 	"vary/prom_rest_exporter/jq"
 )
 
+type ExporterSpec struct {
+	Endpoints []*EndpointSpec
+}
+
 type EndpointSpec struct {
 	Port    int
 	Targets []*TargetSpec
@@ -30,28 +34,38 @@ func (es TargetSpec) String() string {
 	return string(data)
 }
 
-func ReadSpecFromYamlFile(path string) ([]*EndpointSpec, error) {
+func ReadSpecFromYamlFile(path string) (*ExporterSpec, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var endpoints []*EndpointSpec
-	err = yaml.Unmarshal(data, &endpoints)
+	var ex ExporterSpec
+	err = yaml.Unmarshal(data, &ex)
 	if err != nil {
 		return nil, err
 	}
 
-	compileMetrics(endpoints)
+	err = validateSpec(&ex)
 	if err != nil {
 		return nil, err
 	}
 
-	return endpoints, nil
+	compileMetrics(&ex)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ex, nil
 }
 
-func compileMetrics(endpoints []*EndpointSpec) error {
-	for _, e := range endpoints {
+func validateSpec(ex *ExporterSpec) error {
+	// TODO
+	return nil
+}
+
+func compileMetrics(ex *ExporterSpec) error {
+	for _, e := range ex.Endpoints {
 		for _, t := range e.Targets {
 			for _, m := range t.Metrics {
 				m.JqInst = jq.New()
