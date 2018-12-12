@@ -1,0 +1,9 @@
+
+endpoints:
+  - port: 9011
+    targets:
+      - url: file://scrape_test_data.json
+        metrics:
+          - name: user_id
+            selector: ".data[]"
+            val_selector: ".id"

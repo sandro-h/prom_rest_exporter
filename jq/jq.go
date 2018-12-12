@@ -116,24 +116,32 @@ func (jq *Jq) CompileProgram(prog string) error {
 
 // ProcessInput runs the previously compiled program of the Jq instance on the input
 func (jq *Jq) ProcessInput(input string) ([]*Jv, error) {
-	return jq.processInput(input, false)
-}
-
-// ProcessInputFirstOnly runs the previously compiled program of the Jq instance on the input
-// and only returns the first completed result.
-func (jq *Jq) ProcessInputFirstOnly(input string) ([]*Jv, error) {
-	return jq.processInput(input, true)
-}
-
-func (jq *Jq) processInput(input string, firstOnly bool) ([]*Jv, error) {
-	results := make([]*Jv, 0)
-	flags := C.int(0)
-
 	jvInput, err := parseInput(input)
 	if err != nil {
 		return nil, err
 	}
 	defer C.jv_free(jvInput.jv)
+	return jq.processInput(jvInput, false)
+}
+
+// ProcessInputFirstOnly runs the previously compiled program of the Jq instance on the input
+// and only returns the first completed result.
+func (jq *Jq) ProcessInputFirstOnly(input string) ([]*Jv, error) {
+	jvInput, err := parseInput(input)
+	if err != nil {
+		return nil, err
+	}
+	defer C.jv_free(jvInput.jv)
+	return jq.processInput(jvInput, true)
+}
+
+func (jq *Jq) ProcessInputJv(input *Jv) ([]*Jv, error) {
+	return jq.processInput(input.Copy(), false)
+}
+
+func (jq *Jq) processInput(jvInput *Jv, firstOnly bool) ([]*Jv, error) {
+	results := make([]*Jv, 0)
+	flags := C.int(0)
 
 	C.jq_start(jq.state, jvInput.jv, flags)
 	res := C.jq_next(jq.state)
@@ -165,8 +173,17 @@ type Jv struct {
 	jv C.jv
 }
 
+func (jv *Jv) Copy() *Jv {
+	C.jv_copy(jv.jv)
+	return jv
+}
+
 func (jv *Jv) IsNumber() bool {
 	return C.jv_get_kind(jv.jv) == C.JV_KIND_NUMBER
+}
+
+func (jv *Jv) IsString() bool {
+	return C.jv_get_kind(jv.jv) == C.JV_KIND_STRING
 }
 
 func (jv *Jv) ToNumber() interface{} {

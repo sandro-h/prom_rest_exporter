@@ -8,10 +8,14 @@ endpoints:
             description: Number of users
             type: gauge
             selector: "[.data[].last_name] | length"
-          - name: user_count_total
-            description: Total number of users
+          - name: user_id
+            description: User ids
             type: gauge
-            selector: ".total"
+            selector: ".data[]"
+            val_selector: ".id"
+            labels:
+              - name: last_name
+                selector: .last_name
       - url: https://reqres.in/api/unknown
         metrics:
           - name: years_total

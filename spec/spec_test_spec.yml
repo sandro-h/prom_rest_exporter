@@ -12,6 +12,9 @@ endpoints:
             description: Total number of users
             type: gauge
             selector: ".total"
+            labels:
+              - name: instance
+                selector: .inst
       - url: https://reqres.in/api/apps
         metrics:
           - name: app_call_count

@@ -4,15 +4,11 @@ endpoints:
     targets:
       - url: file://scrape_test_data.json
         metrics:
-          - name: user_count
-            description: Number of users
-            type: gauge
-            selector: "[.data[].last_name] | length"
           - name: user_id
-            description: User ids
-            type: gauge
             selector: ".data[]"
             val_selector: ".id"
             labels:
+              - name: first_name
+                selector: .first_name
               - name: last_name
                 selector: .last_name

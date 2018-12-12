@@ -25,6 +25,10 @@ func TestReadSpecFromYaml(t *testing.T) {
 	assert.Equal(t, "gauge", endpoint.Targets[0].Metrics[1].Type)
 	assert.Equal(t, ".total", endpoint.Targets[0].Metrics[1].Selector)
 	assert.NotNil(t, endpoint.Targets[0].Metrics[1].JqInst)
+	assert.Equal(t, 1, len(endpoint.Targets[0].Metrics[1].Labels))
+	assert.Equal(t, "instance", endpoint.Targets[0].Metrics[1].Labels[0].Name)
+	assert.Equal(t, ".inst", endpoint.Targets[0].Metrics[1].Labels[0].Selector)
+	assert.NotNil(t, endpoint.Targets[0].Metrics[1].Labels[0].JqInst)
 
 	assert.Equal(t, "https://reqres.in/api/apps", endpoint.Targets[1].Url)
 	assert.Equal(t, 1, len(endpoint.Targets[1].Metrics))
