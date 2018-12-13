@@ -5,7 +5,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strings"
+	"vary/prom_rest_exporter/jq"
 	"vary/prom_rest_exporter/spec"
 )
 
@@ -20,32 +22,61 @@ type MetricValue struct {
 }
 
 func (val *MetricInstance) Print(w io.Writer) {
-	if val.Description != "" {
-		fmt.Fprintf(w, "# HELP %s %s\n", val.Name, val.Description)
+	val.print(w, false)
+}
+
+func (val *MetricInstance) PrintSortedLabels(w io.Writer) {
+	val.print(w, true)
+}
+
+func (m *MetricInstance) print(w io.Writer, sortLabels bool) {
+	if m.Description != "" {
+		fmt.Fprintf(w, "# HELP %s %s\n", m.Name, m.Description)
 	}
-	if val.Type != "" {
-		fmt.Fprintf(w, "# TYPE %s %s\n", val.Name, val.Type)
+	if m.Type != "" {
+		fmt.Fprintf(w, "# TYPE %s %s\n", m.Name, m.Type)
 	}
 
-	for i, vi := range val.values {
-		fqn := val.Name
-		if len(vi.labelVals) > 0 {
-			lbls := ""
-			for n, v := range vi.labelVals {
-				if lbls != "" {
-					lbls += ","
-				}
-				lbls += n + "=\"" + v + "\""
-			}
-			fqn += "{" + lbls + "}"
-		} else if len(val.values) > 1 {
+	for i, val := range m.values {
+		lbls := val.formatLabelString(sortLabels)
+		if len(m.values) > 1 && lbls == "" {
 			// If there is more than 1 value for the metric, but no labels
 			// to distinguish them, add a label with the index.
-			fqn += fmt.Sprintf("{val_index=\"%d\"}", i)
+			lbls = fmt.Sprintf("{val_index=\"%d\"}", i)
 		}
-		fmt.Fprintf(w, "%s %s\n", fqn, vi.formatVal())
+		fmt.Fprintf(w, "%s%s %s\n", m.Name, lbls, val.formatVal())
 	}
 	fmt.Fprintf(w, "\n")
+}
+
+func (mv *MetricValue) formatLabelString(sortLabels bool) string {
+	lbls := ""
+	if len(mv.labelVals) > 0 {
+		if sortLabels {
+			var keys []string
+			for k := range mv.labelVals {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, n := range keys {
+				lbls = concatLabel(lbls, n, mv.labelVals[n])
+			}
+		} else {
+			for n, v := range mv.labelVals {
+				lbls = concatLabel(lbls, n, v)
+			}
+		}
+
+		lbls = "{" + lbls + "}"
+	}
+	return lbls
+}
+
+func concatLabel(lbls string, name string, val string) string {
+	if lbls != "" {
+		lbls += ","
+	}
+	return lbls + name + "=\"" + val + "\""
 }
 
 func (mv *MetricValue) formatVal() string {
@@ -69,8 +100,9 @@ func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
 }
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
+	// TODO refactor and split up
 	input, _ := fetch(t.Url)
-	values := make([]MetricInstance, 0)
+	metrics := make([]MetricInstance, 0)
 	// fmt.Printf("input:%s\n", input)
 	for _, m := range t.Metrics {
 		results, err := m.JqInst.ProcessInput(input)
@@ -79,39 +111,51 @@ func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
 			// TODO
 		}
 
-		valInsts := make([]MetricValue, 0)
+		metricVals := make([]MetricValue, 0)
 		for _, res := range results {
-			realRes := res
-			labelVals := make(map[string]string)
-			if m.ValJqInst != nil {
-				// TODO handle error
-				subResults, _ := m.ValJqInst.ProcessInputJv(res)
-				if len(subResults) > 0 {
-					realRes = subResults[0]
-				} else {
-					realRes = nil
-				}
+			val := getValue(m, res)
+
+			if val != nil {
+				labels := getLabels(m, res)
+				metricVals = append(metricVals, MetricValue{val, labels})
 			}
 
-			for _, l := range m.Labels {
-
-				// TODO handle error
-				lblResults, _ := l.JqInst.ProcessInputJv(res)
-				if len(lblResults) > 0 && lblResults[0].IsString() {
-					labelVals[l.Name] = lblResults[0].ToString()
-				}
-			}
-
-			if realRes != nil && realRes.IsNumber() {
-				valInsts = append(valInsts, MetricValue{realRes.ToNumber(), labelVals})
-			}
 		}
-		val := MetricInstance{valInsts, m}
-		values = append(values, val)
+		val := MetricInstance{metricVals, m}
+		metrics = append(metrics, val)
 
 	}
 
-	return values, nil
+	return metrics, nil
+}
+
+func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
+	val := res
+	if m.ValJqInst != nil {
+		// TODO handle error
+		subResults, _ := m.ValJqInst.ProcessInputJv(res)
+		if len(subResults) > 0 {
+			val = subResults[0]
+		} else {
+			val = nil
+		}
+	}
+	if val != nil && val.IsNumber() {
+		return val.ToNumber()
+	}
+	return nil
+}
+
+func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
+	labels := make(map[string]string)
+	for _, l := range m.Labels {
+		// TODO handle error
+		lblResults, _ := l.JqInst.ProcessInputJv(res)
+		if len(lblResults) > 0 && lblResults[0].IsString() {
+			labels[l.Name] = lblResults[0].ToString()
+		}
+	}
+	return labels
 }
 
 // Fetch makes a request to the url and returns the response as a string

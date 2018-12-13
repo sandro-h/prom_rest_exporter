@@ -78,7 +78,7 @@ func compileJqsInSpec(ex *ExporterSpec) error {
 		for _, t := range e.Targets {
 			for _, m := range t.Metrics {
 				m.JqInst = compileJq(m.Selector)
-				if m.Val_Selector != "" {
+				if m.Val_Selector != "" && m.Val_Selector != "." {
 					m.ValJqInst = compileJq(m.Val_Selector)
 				}
 				for _, l := range m.Labels {

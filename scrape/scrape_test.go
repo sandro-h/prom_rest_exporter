@@ -61,7 +61,7 @@ user_id{first_name="Emma",last_name="Wong"} 3
 func printMetrics(metrics []MetricInstance) string {
 	var b bytes.Buffer
 	for _, m := range metrics {
-		m.Print(&b)
+		m.PrintSortedLabels(&b)
 	}
 	return b.String()
 }
