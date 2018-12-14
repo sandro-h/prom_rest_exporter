@@ -22,20 +22,22 @@ type TargetSpec struct {
 }
 
 type MetricSpec struct {
-	Name         string
-	Description  string
-	Type         string
-	Selector     string
-	Val_Selector string
-	Labels       []*LabelSpec
-	JqInst       *jq.Jq `yaml:"-"`
-	ValJqInst    *jq.Jq `yaml:"-"`
+	Name            string
+	Description     string
+	Type            string
+	Selector        string
+	ValSelector     string `yaml:"val_selector"`
+	Labels          []*LabelSpec
+	OnlyFixedLabels bool   `yaml:"-"`
+	JqInst          *jq.Jq `yaml:"-"`
+	ValJqInst       *jq.Jq `yaml:"-"`
 }
 
 type LabelSpec struct {
-	Name     string
-	Selector string
-	JqInst   *jq.Jq `yaml:"-"`
+	Name       string
+	Selector   string
+	FixedValue string `yaml:"fixed_value"`
+	JqInst     *jq.Jq `yaml:"-"`
 }
 
 func (es TargetSpec) String() string {
@@ -78,11 +80,15 @@ func compileJqsInSpec(ex *ExporterSpec) error {
 		for _, t := range e.Targets {
 			for _, m := range t.Metrics {
 				m.JqInst = compileJq(m.Selector)
-				if m.Val_Selector != "" && m.Val_Selector != "." {
-					m.ValJqInst = compileJq(m.Val_Selector)
+				if m.ValSelector != "" && m.ValSelector != "." {
+					m.ValJqInst = compileJq(m.ValSelector)
 				}
+				m.OnlyFixedLabels = true
 				for _, l := range m.Labels {
-					l.JqInst = compileJq(l.Selector)
+					if l.FixedValue == "" && l.Selector != "" {
+						l.JqInst = compileJq(l.Selector)
+						m.OnlyFixedLabels = false
+					}
 				}
 			}
 		}

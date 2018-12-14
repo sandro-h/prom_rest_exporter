@@ -38,38 +38,41 @@ func (m *MetricInstance) print(w io.Writer, sortLabels bool) {
 	}
 
 	for i, val := range m.values {
-		lbls := val.formatLabelString(sortLabels)
-		if len(m.values) > 1 && lbls == "" {
-			// If there is more than 1 value for the metric, but no labels
-			// to distinguish them, add a label with the index.
-			lbls = fmt.Sprintf("{val_index=\"%d\"}", i)
-		}
+		// If there is more than 1 value for the metric, but no labels
+		// to distinguish them, add a label with the index.
+		needsValIndex := len(m.values) > 1 && (m.OnlyFixedLabels || len(val.labelVals) == 0)
+		lbls := val.formatLabelString(i, sortLabels, needsValIndex)
 		fmt.Fprintf(w, "%s%s %s\n", m.Name, lbls, val.formatVal())
 	}
 	fmt.Fprintf(w, "\n")
 }
 
-func (mv *MetricValue) formatLabelString(sortLabels bool) string {
+func (val *MetricValue) formatLabelString(valIndex int, sortLabels bool, addValIndex bool) string {
 	lbls := ""
-	if len(mv.labelVals) > 0 {
+	if len(val.labelVals) > 0 {
 		if sortLabels {
 			var keys []string
-			for k := range mv.labelVals {
+			for k := range val.labelVals {
 				keys = append(keys, k)
 			}
 			sort.Strings(keys)
 			for _, n := range keys {
-				lbls = concatLabel(lbls, n, mv.labelVals[n])
+				lbls = concatLabel(lbls, n, val.labelVals[n])
 			}
 		} else {
-			for n, v := range mv.labelVals {
+			for n, v := range val.labelVals {
 				lbls = concatLabel(lbls, n, v)
 			}
 		}
-
-		lbls = "{" + lbls + "}"
 	}
-	return lbls
+	if addValIndex {
+		lbls = concatLabel(lbls, "val_index", fmt.Sprintf("%d", valIndex))
+	}
+
+	if lbls == "" {
+		return ""
+	}
+	return "{" + lbls + "}"
 }
 
 func concatLabel(lbls string, name string, val string) string {
@@ -100,10 +103,8 @@ func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
 }
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
-	// TODO refactor and split up
 	input, _ := fetch(t.Url)
 	metrics := make([]MetricInstance, 0)
-	// fmt.Printf("input:%s\n", input)
 	for _, m := range t.Metrics {
 		results, err := m.JqInst.ProcessInput(input)
 		if err != nil {
@@ -149,10 +150,14 @@ func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
 func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 	labels := make(map[string]string)
 	for _, l := range m.Labels {
-		// TODO handle error
-		lblResults, _ := l.JqInst.ProcessInputJv(res)
-		if len(lblResults) > 0 && lblResults[0].IsString() {
-			labels[l.Name] = lblResults[0].ToString()
+		if l.FixedValue != "" {
+			labels[l.Name] = l.FixedValue
+		} else {
+			// TODO handle error
+			lblResults, _ := l.JqInst.ProcessInputJv(res)
+			if len(lblResults) > 0 && lblResults[0].IsString() {
+				labels[l.Name] = lblResults[0].ToString()
+			}
 		}
 	}
 	return labels

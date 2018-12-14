@@ -1,0 +1,19 @@
+
+endpoints:
+  - port: 9011
+    targets:
+      - url: file://scrape_test_data.json
+        metrics:
+          - name: user_count
+            description: Number of users
+            type: gauge
+            selector: "[.data[].last_name] | length"
+            labels:
+              - name: foobar
+                fixed_value: hello
+          - name: user_id
+            selector: ".data[]"
+            val_selector: ".id"
+            labels:
+              - name: foobar
+                fixed_value: world

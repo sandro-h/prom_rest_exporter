@@ -8,6 +8,9 @@ endpoints:
             description: Number of users
             type: gauge
             selector: "[.data[].last_name] | length"
+            labels:
+              - name: env
+                fixed_value: prod
           - name: user_id
             description: User ids
             type: gauge
