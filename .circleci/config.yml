@@ -15,6 +15,7 @@ jobs:
             go get github.com/stretchr/testify
             go get gopkg.in/yaml.v2
             go get github.com/gorilla/mux
+            go get github.com/sirupsen/logrus
 
       - run:
           name: Install build tools

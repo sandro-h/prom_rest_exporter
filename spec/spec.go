@@ -1,7 +1,7 @@
 package spec
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"vary/prom_rest_exporter/jq"
@@ -101,8 +101,8 @@ func compileJq(selector string) *jq.Jq {
 	jqInst := jq.New()
 	err := jqInst.CompileProgram(selector)
 	if err != nil {
-		fmt.Printf("Jq compile error: %s\n", err.Error())
-		// Handle somehow, either fail fast or ignore and expulse metric
+		log.Errorf("Jq compile error for selector %s: %s\n", selector, err.Error())
+		// TODO handle error
 	}
 	return jqInst
 }

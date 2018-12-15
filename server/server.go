@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 	"vary/prom_rest_exporter/scrape"
@@ -15,6 +16,7 @@ type MetricServer struct {
 }
 
 func (srv *MetricServer) Start() {
+	log.Infof("Starting metric endpoint at localhost:%d/metrics", srv.Endpoint.Port)
 	router := mux.NewRouter()
 	router.HandleFunc("/metrics", srv.GetMetrics).Methods("GET")
 

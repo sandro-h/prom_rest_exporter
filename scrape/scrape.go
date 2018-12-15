@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -103,13 +104,17 @@ func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
 }
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
+	log.Debugf("Scraping target %s", t.Url)
+	// TODO handle error
 	input, _ := fetch(t.Url)
+	log.Tracef("Data from %s: %s", t.Url, input)
+
 	metrics := make([]MetricInstance, 0)
 	for _, m := range t.Metrics {
 		results, err := m.JqInst.ProcessInput(input)
 		if err != nil {
 			fmt.Printf("Process error: %s", err)
-			// TODO
+			// TODO handle error
 		}
 
 		metricVals := make([]MetricValue, 0)
