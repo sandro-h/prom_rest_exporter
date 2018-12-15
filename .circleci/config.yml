@@ -16,6 +16,7 @@ jobs:
             go get gopkg.in/yaml.v2
             go get github.com/gorilla/mux
             go get github.com/sirupsen/logrus
+            GOOS=windows go get github.com/konsorten/go-windows-terminal-sequences
 
       - run:
           name: Install build tools
