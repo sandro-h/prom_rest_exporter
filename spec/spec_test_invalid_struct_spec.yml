@@ -1,0 +1,12 @@
+
+endpoints:
+  - port: 9011
+    targets:
+      - url: https://reqres.in/api/users
+        metrics:
+          # metrics is a list, not a map
+          name: user_count
+          description: Number of users
+          type: gauge
+          selector: "[.data[].last_name] | length"
+  

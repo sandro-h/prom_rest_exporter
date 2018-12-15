@@ -1,0 +1,5 @@
+
+endpoints:
+  - port: 9011
+    targets:
+  key_instead_of_list_entry: 6

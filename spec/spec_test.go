@@ -12,7 +12,7 @@ func TestReadSpecFromYaml(t *testing.T) {
 
 	endpoint := spec.Endpoints[0]
 	assert.Equal(t, 9011, endpoint.Port)
-	assert.Equal(t, "https://reqres.in/api/users", endpoint.Targets[0].Url)
+	assert.Equal(t, "https://reqres.in/api/users", endpoint.Targets[0].URL)
 	assert.Equal(t, 2, len(endpoint.Targets[0].Metrics))
 	assert.Equal(t, "user_count", endpoint.Targets[0].Metrics[0].Name)
 	assert.Equal(t, "Number of users", endpoint.Targets[0].Metrics[0].Description)
@@ -30,11 +30,38 @@ func TestReadSpecFromYaml(t *testing.T) {
 	assert.Equal(t, ".inst", endpoint.Targets[0].Metrics[1].Labels[0].Selector)
 	assert.NotNil(t, endpoint.Targets[0].Metrics[1].Labels[0].JqInst)
 
-	assert.Equal(t, "https://reqres.in/api/apps", endpoint.Targets[1].Url)
+	assert.Equal(t, "https://reqres.in/api/apps", endpoint.Targets[1].URL)
 	assert.Equal(t, 1, len(endpoint.Targets[1].Metrics))
 	assert.Equal(t, "app_call_count", endpoint.Targets[1].Metrics[0].Name)
 	assert.Equal(t, "Number of app calls", endpoint.Targets[1].Metrics[0].Description)
 	assert.Equal(t, "counter", endpoint.Targets[1].Metrics[0].Type)
 	assert.Equal(t, ".data.calls", endpoint.Targets[1].Metrics[0].Selector)
 	assert.NotNil(t, endpoint.Targets[1].Metrics[0].JqInst)
+}
+
+func TestReadSpecFromInexistentFile(t *testing.T) {
+	spec, err := ReadSpecFromYamlFile("does_not_exist.yml")
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+}
+
+func TestReadSpecWithInvalidYaml(t *testing.T) {
+	spec, err := ReadSpecFromYamlFile("spec_test_invalid_yaml_spec.yml")
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "yaml: line 4: did not find expected '-' indicator", err.Error())
+}
+
+func TestReadSpecWithInvalidStructure(t *testing.T) {
+	spec, err := ReadSpecFromYamlFile("spec_test_invalid_struct_spec.yml")
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "line 8: cannot unmarshal !!map into []*spec.MetricSpec")
+}
+
+func TestReadSpecWithInvalidJq(t *testing.T) {
+	spec, err := ReadSpecFromYamlFile("spec_test_invalid_jq_spec.yml")
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Jq compile error for selector [.data[].last_name | length: jq: error: syntax error, unexpected $end")
 }

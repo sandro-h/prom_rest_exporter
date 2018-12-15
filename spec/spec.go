@@ -1,7 +1,8 @@
 package spec
 
 import (
-	log "github.com/sirupsen/logrus"
+	"errors"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"vary/prom_rest_exporter/jq"
@@ -17,7 +18,7 @@ type EndpointSpec struct {
 }
 
 type TargetSpec struct {
-	Url     string
+	URL     string
 	Metrics []*MetricSpec
 }
 
@@ -62,7 +63,7 @@ func ReadSpecFromYamlFile(path string) (*ExporterSpec, error) {
 		return nil, err
 	}
 
-	compileJqsInSpec(&ex)
+	err = compileJqsInSpec(&ex)
 	if err != nil {
 		return nil, err
 	}
@@ -76,17 +77,32 @@ func validateSpec(ex *ExporterSpec) error {
 }
 
 func compileJqsInSpec(ex *ExporterSpec) error {
+	var err error
 	for _, e := range ex.Endpoints {
 		for _, t := range e.Targets {
 			for _, m := range t.Metrics {
-				m.JqInst = compileJq(m.Selector)
-				if m.ValSelector != "" && m.ValSelector != "." {
-					m.ValJqInst = compileJq(m.ValSelector)
+				// Compile metric selectors
+				m.JqInst, err = compileJq(m.Selector)
+				if err != nil {
+					return err
 				}
+
+				// Compile metric value selectors
+				if m.ValSelector != "" && m.ValSelector != "." {
+					m.ValJqInst, err = compileJq(m.ValSelector)
+					if err != nil {
+						return err
+					}
+				}
+
+				// Compile metric label selectors
 				m.OnlyFixedLabels = true
 				for _, l := range m.Labels {
 					if l.FixedValue == "" && l.Selector != "" {
-						l.JqInst = compileJq(l.Selector)
+						l.JqInst, err = compileJq(l.Selector)
+						if err != nil {
+							return err
+						}
 						m.OnlyFixedLabels = false
 					}
 				}
@@ -97,12 +113,12 @@ func compileJqsInSpec(ex *ExporterSpec) error {
 	return nil
 }
 
-func compileJq(selector string) *jq.Jq {
+func compileJq(selector string) (*jq.Jq, error) {
 	jqInst := jq.New()
 	err := jqInst.CompileProgram(selector)
 	if err != nil {
-		log.Errorf("Jq compile error for selector %s: %s\n", selector, err.Error())
-		// TODO handle error
+		msg := fmt.Sprintf("Jq compile error for selector %s: %s\n", selector, err.Error())
+		return nil, errors.New(msg)
 	}
-	return jqInst
+	return jqInst, nil
 }

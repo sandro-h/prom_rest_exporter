@@ -104,10 +104,10 @@ func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
 }
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
-	log.Debugf("Scraping target %s", t.Url)
+	log.Debugf("Scraping target %s", t.URL)
 	// TODO handle error
-	input, _ := fetch(t.Url)
-	log.Tracef("Data from %s: %s", t.Url, input)
+	input, _ := fetch(t.URL)
+	log.Tracef("Data from %s: %s", t.URL, input)
 
 	metrics := make([]MetricInstance, 0)
 	for _, m := range t.Metrics {

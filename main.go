@@ -20,7 +20,11 @@ func main() {
 
 	log.Infof("Starting prom_rest_exporter with config file %s", *config)
 
-	spec, _ := spec.ReadSpecFromYamlFile(*config)
+	spec, err := spec.ReadSpecFromYamlFile(*config)
+	if err != nil {
+		log.Errorf("Error reading %s: %s", *config, err)
+		panic(err)
+	}
 	for _, ep := range spec.Endpoints {
 		srv := server.MetricServer{Endpoint: ep}
 		go srv.Start()
