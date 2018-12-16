@@ -77,6 +77,53 @@ user_id{foobar="world",val_index="2"} 3
 		printMetrics(metrics))
 }
 
+func TestScrapeNotFoundValSkipped(t *testing.T) {
+	spec, _ := spec.ReadSpecFromYamlFile("scrape_test_no_val_spec.yml")
+	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t,
+		`# HELP user_count2 Number of users
+# TYPE user_count2 gauge
+user_count2 3
+
+`,
+		printMetrics(metrics))
+}
+
+func TestScrapeNotFoundLabelSkipped(t *testing.T) {
+	spec, _ := spec.ReadSpecFromYamlFile("scrape_test_no_label_spec.yml")
+	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t,
+		`# HELP user_id User ids
+# TYPE user_id gauge
+user_id{last_name="Bluth"} 1
+user_id{last_name="Weaver"} 2
+user_id{last_name="Wong"} 3
+
+`,
+		printMetrics(metrics))
+}
+
+func TestScrapeFetchErrorSkipped(t *testing.T) {
+	spec, _ := spec.ReadSpecFromYamlFile("scrape_test_fetch_error_spec.yml")
+	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t,
+		`# HELP user_count2 Number of users
+# TYPE user_count2 gauge
+user_count2 3
+
+`,
+		printMetrics(metrics))
+}
+
 func printMetrics(metrics []MetricInstance) string {
 	var b bytes.Buffer
 	for _, m := range metrics {
