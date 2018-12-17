@@ -6,7 +6,7 @@ import (
 )
 
 func TestReadSpecFromYaml(t *testing.T) {
-	spec, err := ReadSpecFromYamlFile("spec_test_spec.yml")
+	spec, err := ReadSpecFromYamlFile("testdata/spec_test_spec.yml")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(spec.Endpoints))
 
@@ -40,27 +40,27 @@ func TestReadSpecFromYaml(t *testing.T) {
 }
 
 func TestReadSpecFromInexistentFile(t *testing.T) {
-	spec, err := ReadSpecFromYamlFile("does_not_exist.yml")
+	spec, err := ReadSpecFromYamlFile("testdata/does_not_exist.yml")
 	assert.Nil(t, spec)
 	assert.NotNil(t, err)
 }
 
 func TestReadSpecWithInvalidYaml(t *testing.T) {
-	spec, err := ReadSpecFromYamlFile("spec_test_invalid_yaml_spec.yml")
+	spec, err := ReadSpecFromYamlFile("testdata/spec_test_invalid_yaml_spec.yml")
 	assert.Nil(t, spec)
 	assert.NotNil(t, err)
 	assert.Equal(t, "yaml: line 4: did not find expected '-' indicator", err.Error())
 }
 
 func TestReadSpecWithInvalidStructure(t *testing.T) {
-	spec, err := ReadSpecFromYamlFile("spec_test_invalid_struct_spec.yml")
+	spec, err := ReadSpecFromYamlFile("testdata/spec_test_invalid_struct_spec.yml")
 	assert.Nil(t, spec)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "line 8: cannot unmarshal !!map into []*spec.MetricSpec")
 }
 
 func TestReadSpecWithInvalidJq(t *testing.T) {
-	spec, err := ReadSpecFromYamlFile("spec_test_invalid_jq_spec.yml")
+	spec, err := ReadSpecFromYamlFile("testdata/spec_test_invalid_jq_spec.yml")
 	assert.Nil(t, spec)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "Jq compile error for selector [.data[].last_name | length: jq: error: syntax error, unexpected $end")

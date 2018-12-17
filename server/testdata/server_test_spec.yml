@@ -2,7 +2,7 @@
 endpoints:
   - port: 9011
     targets:
-      - url: file://server_test_data.json
+      - url: file://testdata/server_test_data.json
         metrics:
           - name: user_count
             description: Number of users

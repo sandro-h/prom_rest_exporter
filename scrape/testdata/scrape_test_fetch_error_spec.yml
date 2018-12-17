@@ -2,12 +2,14 @@
 endpoints:
   - port: 9011
     targets:
-      - url: file://scrape_test_data.json
+      - url: file://testdata/no_such_file.json
         metrics:
-          - name: user_count
+          - name: user_count1
             description: Number of users
             type: gauge
-            selector: ".no_such_field"
+            selector: "[.data[].last_name] | length"
+      - url: file://testdata/scrape_test_data.json
+        metrics:
           - name: user_count2
             description: Number of users
             type: gauge

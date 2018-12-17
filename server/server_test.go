@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 }
 
 func startup() {
-	spec, _ := spec.ReadSpecFromYamlFile("server_test_spec.yml")
+	spec, _ := spec.ReadSpecFromYamlFile("testdata/server_test_spec.yml")
 	srv := MetricServer{Endpoint: spec.Endpoints[0]}
 	go srv.Start()
 }
