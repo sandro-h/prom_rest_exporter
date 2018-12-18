@@ -1,6 +1,8 @@
 
+cache_time: 60
 endpoints:
   - port: 9011
+    cache_time: 30
     targets:
       - url: https://reqres.in/api/users
         metrics:

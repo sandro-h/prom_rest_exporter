@@ -25,8 +25,16 @@ func main() {
 		log.Errorf("Error reading %s: %s", *config, err)
 		panic(err)
 	}
+
+	var ct int
+	if spec.CacheTimeSeconds > 0 {
+		ct = spec.CacheTimeSeconds
+	} else {
+		ct = 60
+	}
+
 	for _, ep := range spec.Endpoints {
-		srv := server.MetricServer{Endpoint: ep}
+		srv := server.MetricServer{Endpoint: ep, DefaultCacheTimeSeconds: ct}
 		go srv.Start()
 	}
 

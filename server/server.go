@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -11,12 +12,24 @@ import (
 )
 
 type MetricServer struct {
-	Endpoint *spec.EndpointSpec
-	srv      *http.Server
+	Endpoint                *spec.EndpointSpec
+	DefaultCacheTimeSeconds int
+	srv                     *http.Server
+	cache                   *cache.Cache
 }
 
 func (srv *MetricServer) Start() {
 	log.Infof("Starting metric endpoint at localhost:%d/metrics", srv.Endpoint.Port)
+
+	var ct time.Duration
+	if srv.Endpoint.CacheTimeSeconds > 0 {
+		ct = time.Duration(srv.Endpoint.CacheTimeSeconds)
+	} else {
+		ct = time.Duration(srv.DefaultCacheTimeSeconds)
+	}
+	log.Debugf("Using %ds cache time", ct)
+	srv.cache = cache.New(ct*time.Second, 10*time.Minute)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/metrics", srv.GetMetrics).Methods("GET")
 
@@ -32,7 +45,15 @@ func (srv *MetricServer) Start() {
 func (srv *MetricServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
-	vals, _ := scrape.ScrapeTargets(srv.Endpoint.Targets)
+	var vals []scrape.MetricInstance
+	cachedVals, found := srv.cache.Get("metrics")
+	if found {
+		vals = cachedVals.([]scrape.MetricInstance)
+	} else {
+		vals = scrape.ScrapeTargets(srv.Endpoint.Targets)
+		srv.cache.Set("metrics", vals, cache.DefaultExpiration)
+	}
+
 	for _, val := range vals {
 		val.Print(w)
 	}

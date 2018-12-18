@@ -1,4 +1,5 @@
 
+cache_time: 60
 endpoints:
   - port: 9011
     targets:
@@ -27,6 +28,7 @@ endpoints:
             selector: "[.data[].year] | add"
 
   - port: 9012
+    cache_time: 10
     targets:
       - url: https://reqres.in/api/unknown
         metrics:

@@ -9,7 +9,7 @@ import (
 	"vary/prom_rest_exporter/spec"
 )
 
-func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
+func ScrapeTargets(ts []*spec.TargetSpec) []MetricInstance {
 	allValues := make([]MetricInstance, 0)
 	for _, t := range ts {
 		values, err := ScrapeTarget(t)
@@ -19,7 +19,7 @@ func ScrapeTargets(ts []*spec.TargetSpec) ([]MetricInstance, error) {
 			allValues = append(allValues, values...)
 		}
 	}
-	return allValues, nil
+	return allValues
 }
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {

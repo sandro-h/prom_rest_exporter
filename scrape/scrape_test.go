@@ -9,9 +9,7 @@ import (
 
 func TestScrape(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`# HELP user_count Number of users
@@ -30,9 +28,7 @@ user_id{last_name="Wong"} 3
 
 func TestScrapeDefaultLabel(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_default_lbl_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`user_id{val_index="0"} 1
@@ -45,9 +41,7 @@ user_id{val_index="2"} 3
 
 func TestScrapeMultiLabels(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_multi_lbl_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`user_id{first_name="George",last_name="Bluth"} 1
@@ -60,9 +54,7 @@ user_id{first_name="Emma",last_name="Wong"} 3
 
 func TestScrapeFixedLabel(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_fixed_lbl_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`# HELP user_count Number of users
@@ -79,9 +71,7 @@ user_id{foobar="world",val_index="2"} 3
 
 func TestScrapeNotFoundValSkipped(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_no_val_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`# HELP user_count2 Number of users
@@ -94,9 +84,7 @@ user_count2 3
 
 func TestScrapeNotFoundLabelSkipped(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_no_label_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`# HELP user_id User ids
@@ -111,9 +99,7 @@ user_id{last_name="Wong"} 3
 
 func TestScrapeFetchErrorSkipped(t *testing.T) {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_fetch_error_spec.yml")
-	metrics, err := ScrapeTargets(spec.Endpoints[0].Targets)
-
-	assert.Nil(t, err)
+	metrics := ScrapeTargets(spec.Endpoints[0].Targets)
 
 	assert.Equal(t,
 		`# HELP user_count2 Number of users

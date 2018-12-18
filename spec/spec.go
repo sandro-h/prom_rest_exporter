@@ -9,12 +9,14 @@ import (
 )
 
 type ExporterSpec struct {
-	Endpoints []*EndpointSpec
+	Endpoints        []*EndpointSpec
+	CacheTimeSeconds int `yaml:"cache_time"`
 }
 
 type EndpointSpec struct {
-	Port    int
-	Targets []*TargetSpec
+	Port             int
+	Targets          []*TargetSpec
+	CacheTimeSeconds int `yaml:"cache_time"`
 }
 
 type TargetSpec struct {
