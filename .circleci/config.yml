@@ -25,11 +25,17 @@ jobs:
 
       - restore_cache:
           name: Restore jq cache
-          key: v1-jq
+          key: v3-jq
 
       - run:
           name: Download jq master
-          command: if [ ! -d jq-master ]; then git clone https://github.com/stedolan/jq.git jq-master; fi
+          command: |
+            if [ ! -d jq-master ]; then 
+              git clone https://github.com/stedolan/jq.git jq-master
+              pushd jq-master
+              git checkout jq-1.6
+              popd
+            fi
 
       - run:
           name: Build jq for windows
@@ -65,7 +71,7 @@ jobs:
           name: Save jq cache
           paths:
             - jq-master
-          key: v1-jq
+          key: v3-jq
 
       - run:
           name: Test

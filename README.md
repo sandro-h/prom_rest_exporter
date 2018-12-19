@@ -18,9 +18,9 @@ Building prom_rest_exporter requires compiled
 ```bash
 git clone https://github.com/stedolan/jq.git jq-master
 cd jq-master
+git checkout jq-1.6
 git submodule update --init
 ```
-Note: 1.6 release doesn't work because of bug when compiling
 
 Required build tools:
 
@@ -47,6 +47,7 @@ Cf. https://github.com/stedolan/jq/wiki/Cross-compilation
 autoreconf -fi
 ./configure
 make distclean
+mkdir build
 # Run it twice if first time you get "fatal error: compile.h"
 CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
 --disable-shared \
