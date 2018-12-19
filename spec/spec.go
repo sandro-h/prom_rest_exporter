@@ -23,6 +23,7 @@ type TargetSpec struct {
 	URL      string
 	User     string
 	Password string
+	Headers  map[string]string
 	Metrics  []*MetricSpec
 }
 

@@ -1,0 +1,13 @@
+
+endpoints:
+  - port: 9011
+    targets:
+      - url: http://localhost:19011/test
+        headers:
+          CustomHeader1: CustomValue1
+          CustomHeader2: CustomValue2
+        metrics:
+          - name: user_count
+            description: Number of users
+            type: gauge
+            selector: "[.data[].last_name] | length"

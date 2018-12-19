@@ -128,6 +128,18 @@ func TestScrapeBasicAuth(t *testing.T) {
 	assert.Equal(t, "pass123", pwd)
 }
 
+func TestScrapeHeaders(t *testing.T) {
+	srv := StartTestRestServer(19011)
+	defer srv.Stop()
+
+	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_headers_spec.yml")
+	ScrapeTargets(spec.Endpoints[0].Targets)
+
+	assert.Equal(t, 1, len(srv.ReceivedReqs))
+	assert.Equal(t, "CustomValue1", srv.ReceivedReqs[0].Header.Get("CustomHeader1"))
+	assert.Equal(t, "CustomValue2", srv.ReceivedReqs[0].Header.Get("CustomHeader2"))
+}
+
 func printMetrics(metrics []MetricInstance) string {
 	var b bytes.Buffer
 	for _, m := range metrics {
