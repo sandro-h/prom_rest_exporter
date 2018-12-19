@@ -60,4 +60,6 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
 ## Todos
 
 - documentation
+- dependency management
 - jq result freeing
+- use fixed jq version/tag

@@ -35,24 +35,24 @@ func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
 		results, err := m.JqInst.ProcessInput(input)
 		if err != nil {
 			log.Errorf("Error processing input of %s for metric %s: %s", t.URL, m.Name, err)
-			continue
-		}
+		} else {
+			metricVals := make([]MetricValue, 0)
+			for _, res := range results {
+				val := getValue(m, res)
 
-		metricVals := make([]MetricValue, 0)
-		for _, res := range results {
-			val := getValue(m, res)
-
-			if val == nil {
-				log.Errorf("Error processing input of %s for metric %s: no valid value found", t.URL, m.Name)
-			} else {
-				labels := getLabels(m, res)
-				metricVals = append(metricVals, MetricValue{val, labels})
+				if val == nil {
+					log.Errorf("Error processing input of %s for metric %s: no valid value found", t.URL, m.Name)
+				} else {
+					labels := getLabels(m, res)
+					metricVals = append(metricVals, MetricValue{val, labels})
+				}
+			}
+			if len(metricVals) > 0 {
+				val := MetricInstance{metricVals, m}
+				metrics = append(metrics, val)
 			}
 		}
-		if len(metricVals) > 0 {
-			val := MetricInstance{metricVals, m}
-			metrics = append(metrics, val)
-		}
+		freeResults(results)
 	}
 
 	return metrics, nil
@@ -62,6 +62,7 @@ func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
 	val := res
 	if m.ValJqInst != nil {
 		subResults, err := m.ValJqInst.ProcessInputJv(res)
+		defer freeResults(subResults)
 		if err != nil {
 			log.Errorf("Error getting value for metric %s: %s", m.Name, err)
 		}
@@ -77,6 +78,12 @@ func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
 	return nil
 }
 
+func freeResults(res []*jq.Jv) {
+	for _, r := range res {
+		r.Free()
+	}
+}
+
 func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 	labels := make(map[string]string)
 	for _, l := range m.Labels {
@@ -89,6 +96,7 @@ func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 			} else if len(lblResults) > 0 && lblResults[0].IsString() {
 				labels[l.Name] = lblResults[0].ToString()
 			}
+			freeResults(lblResults)
 		}
 	}
 	return labels

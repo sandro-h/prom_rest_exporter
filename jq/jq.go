@@ -178,6 +178,12 @@ func (jv *Jv) Copy() *Jv {
 	return jv
 }
 
+func (jv *Jv) Free() *Jv {
+	// Cf. https://github.com/stedolan/jq/wiki/C-API:-jv#memory-management
+	C.jv_free(jv.jv)
+	return nil
+}
+
 func (jv *Jv) IsNumber() bool {
 	return C.jv_get_kind(jv.jv) == C.JV_KIND_NUMBER
 }
