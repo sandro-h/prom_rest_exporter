@@ -51,13 +51,14 @@ func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
 				val := MetricInstance{metricVals, m}
 				metrics = append(metrics, val)
 			}
+			freeResults(results)
 		}
-		freeResults(results)
 	}
 
 	return metrics, nil
 }
 
+// Does not consume res
 func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
 	val := res
 	if m.ValJqInst != nil {
@@ -84,6 +85,7 @@ func freeResults(res []*jq.Jv) {
 	}
 }
 
+// Does not consume res
 func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 	labels := make(map[string]string)
 	for _, l := range m.Labels {
@@ -93,10 +95,12 @@ func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 			lblResults, err := l.JqInst.ProcessInputJv(res)
 			if err != nil {
 				log.Errorf("Error getting label for metric %s: %s", m.Name, err)
-			} else if len(lblResults) > 0 && lblResults[0].IsString() {
-				labels[l.Name] = lblResults[0].ToString()
+			} else {
+				if len(lblResults) > 0 && lblResults[0].IsString() {
+					labels[l.Name] = lblResults[0].ToString()
+				}
+				freeResults(lblResults)
 			}
-			freeResults(lblResults)
 		}
 	}
 	return labels

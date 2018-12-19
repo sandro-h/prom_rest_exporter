@@ -201,7 +201,7 @@ func (jv *Jv) ToNumber() interface{} {
 }
 
 func (jv *Jv) _toString(flags C.int) string {
-	jvStr := C.jv_dump_string(jv.jv, flags)
+	jvStr := C.jv_dump_string(jv.Copy().jv, flags)
 	defer C.jv_free(jvStr)
 	str := C.GoString(C.jv_string_value(jvStr))
 	// Always use "raw" output: no quotes around strings
