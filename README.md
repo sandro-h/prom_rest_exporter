@@ -2,28 +2,18 @@
 
 [![CircleCI](https://circleci.com/bb/mentalvary/prom_rest_exporter.svg?style=svg)](https://circleci.com/bb/mentalvary/prom_rest_exporter)
 
-## intro
+prom_rest_exporter translates arbitrary REST endpoints to metrics for [Prometheus](https://prometheus.io/).
 
-goal is a tool that translate arbitrary application rest endpoints to a /metrics endpoint
-understandable by prometheus.
+It uses the excellent [jq](https://github.com/stedolan/jq) to transform JSON responses to numeric metric values.
 
-learning goal is:
+prom_rest_exporter runs as a process exposing one or more /metrics endpoints for Prometheus.
 
-* (re)learn golang
-* make early use of CI
+## Development
 
-## jq in golang
+Building prom_rest_exporter requires compiled
+[jq](https://github.com/stedolan/jq) libraries.
 
-jq c api:  
-https://github.com/stedolan/jq/wiki/C-API:-libjq
-
-existing golang bindings:  
-https://github.com/ashb/jqrepl
-
-c bindings in golang:  
-https://golang.org/cmd/cgo/
-
-### Compiling jq
+### Fetching jq sources and build tools
 
 ```
 git clone https://github.com/stedolan/jq.git jq-master
@@ -32,13 +22,13 @@ git submodule update --init
 ```
 Note: 1.6 release doesn't work because of bug when compiling
 
-packages:
+Required build tools:
 
 ```
 sudo apt-get install autoconf make libtool flex bison gcc-mingw-w64-x86-64
 ```
 
-#### compile for linux
+#### Compiling for linux
 
 ```
 autoreconf -fi
@@ -49,9 +39,9 @@ make install
 rm -f build/linux/usr/local/lib/*.so*
 ```
 
-#### cross-compile for windows
+#### Cross-compiling for Windows
 
-https://github.com/stedolan/jq/wiki/Cross-compilation
+Cf. https://github.com/stedolan/jq/wiki/Cross-compilation
 
 ```
 autoreconf -fi
@@ -61,10 +51,7 @@ make distclean
 CPPFLAGS=-I$PWD/src scripts/crosscompile win64 --disable-shared --enable-static --enable-all-static --target=win64-x86_64 --host=x86_64-w64-mingw32 --with-oniguruma=builtin
 ```
 
-## prometheus metrics
+## Todos
 
-https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
-
-## todos
-
-- targets w/ authentication
+- documentation
+- jq result freeing
