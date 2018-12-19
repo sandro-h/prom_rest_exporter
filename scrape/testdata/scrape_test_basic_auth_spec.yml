@@ -1,0 +1,12 @@
+
+endpoints:
+  - port: 9011
+    targets:
+      - url: http://localhost:19011/test
+        user: user123
+        password: pass123
+        metrics:
+          - name: user_count
+            description: Number of users
+            type: gauge
+            selector: "[.data[].last_name] | length"

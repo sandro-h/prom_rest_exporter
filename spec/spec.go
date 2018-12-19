@@ -20,8 +20,10 @@ type EndpointSpec struct {
 }
 
 type TargetSpec struct {
-	URL     string
-	Metrics []*MetricSpec
+	URL      string
+	User     string
+	Password string
+	Metrics  []*MetricSpec
 }
 
 type MetricSpec struct {

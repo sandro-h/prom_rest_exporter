@@ -24,7 +24,7 @@ func ScrapeTargets(ts []*spec.TargetSpec) []MetricInstance {
 
 func ScrapeTarget(t *spec.TargetSpec) ([]MetricInstance, error) {
 	log.Debugf("Scraping target %s", t.URL)
-	input, err := fetch(t.URL)
+	input, err := fetch(t.URL, t.User, t.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 }
 
 // Fetch makes a request to the url and returns the response as a string
-func fetch(url string) (string, error) {
+func fetch(url string, user string, pwd string) (string, error) {
 	if strings.HasPrefix(url, "file://") {
 		data, err := ioutil.ReadFile(url[7:])
 		if err != nil {
@@ -104,7 +104,17 @@ func fetch(url string) (string, error) {
 		return string(data), nil
 	}
 
-	response, err := http.Get(url)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	if user != "" && pwd != "" {
+		req.SetBasicAuth(user, pwd)
+	}
+
+	response, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}

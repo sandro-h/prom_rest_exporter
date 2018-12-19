@@ -2,8 +2,12 @@ package scrape
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"net/http"
 	"testing"
+	"time"
 	"vary/prom_rest_exporter/spec"
 )
 
@@ -110,10 +114,54 @@ user_count2 3
 		printMetrics(metrics))
 }
 
+func TestScrapeBasicAuth(t *testing.T) {
+	srv := StartTestRestServer(19011)
+	defer srv.Stop()
+
+	spec, _ := spec.ReadSpecFromYamlFile("testdata/scrape_test_basic_auth_spec.yml")
+	ScrapeTargets(spec.Endpoints[0].Targets)
+
+	assert.Equal(t, 1, len(srv.ReceivedReqs))
+	user, pwd, ok := srv.ReceivedReqs[0].BasicAuth()
+	assert.True(t, ok)
+	assert.Equal(t, "user123", user)
+	assert.Equal(t, "pass123", pwd)
+}
+
 func printMetrics(metrics []MetricInstance) string {
 	var b bytes.Buffer
 	for _, m := range metrics {
 		m.PrintSortedLabels(&b)
 	}
 	return b.String()
+}
+
+type TestRestServer struct {
+	srv          *http.Server
+	ReceivedReqs []*http.Request
+}
+
+func StartTestRestServer(port int) *TestRestServer {
+	srv := TestRestServer{}
+	srv.ReceivedReqs = make([]*http.Request, 0)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/test", srv.GetTestData).Methods("GET")
+
+	srv.srv = &http.Server{
+		Handler:      router,
+		Addr:         fmt.Sprintf("localhost:%d", port),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	go srv.srv.ListenAndServe()
+	return &srv
+}
+
+func (srv *TestRestServer) Stop() {
+	srv.srv.Shutdown(nil)
+}
+
+func (srv *TestRestServer) GetTestData(w http.ResponseWriter, r *http.Request) {
+	srv.ReceivedReqs = append(srv.ReceivedReqs, r)
 }
