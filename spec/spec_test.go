@@ -67,3 +67,87 @@ func TestReadSpecWithInvalidJq(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "Jq compile error for selector [.data[].last_name | length: jq: error: syntax error, unexpected $end")
 }
+
+func TestReadSpecWithoutPort(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - targets:
+    - url: https://reqres.in/api/users
+      metrics:
+        - name: user_count
+          selector: .`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Endpoint 'port' must be > 0", err.Error())
+}
+
+func TestReadSpecWithoutTargetURL(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - port: 9011
+    targets:
+      - metrics:
+          - name: user_count
+            selector: .`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Target must have 'url'", err.Error())
+}
+
+func TestReadSpecWithoutMetricName(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - port: 9011
+    targets:
+      - url: https://reqres.in/api/users
+        metrics:
+          - selector: .`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Metric must have 'name'", err.Error())
+}
+
+func TestReadSpecWithoutMetricSelector(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - port: 9011
+    targets:
+      - url: https://reqres.in/api/users
+        metrics:
+          - name: user_count`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Metric must have 'selector'", err.Error())
+}
+
+func TestReadSpecWithoutLabelName(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - port: 9011
+    targets:
+      - url: https://reqres.in/api/users
+        metrics:
+          - name: user_count
+            selector: .
+            labels:
+              - selector: .`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Label must have 'name'", err.Error())
+}
+
+func TestReadSpecWithoutLabelSelectorOrValue(t *testing.T) {
+	spec, err := ReadSpecFromYamlString(`
+endpoints:
+  - port: 9011
+    targets:
+      - url: https://reqres.in/api/users
+        metrics:
+          - name: user_count
+            selector: .
+            labels:
+              - name: bla`)
+	assert.Nil(t, spec)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Label must have 'selector' or 'fixed_value'", err.Error())
+}

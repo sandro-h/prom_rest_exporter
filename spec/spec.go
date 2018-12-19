@@ -25,12 +25,13 @@ type TargetSpec struct {
 }
 
 type MetricSpec struct {
-	Name            string
-	Description     string
-	Type            string
-	Selector        string
-	ValSelector     string `yaml:"val_selector"`
-	Labels          []*LabelSpec
+	Name        string
+	Description string
+	Type        string
+	Selector    string
+	ValSelector string `yaml:"val_selector"`
+	Labels      []*LabelSpec
+	// Calculated fields:
 	OnlyFixedLabels bool   `yaml:"-"`
 	JqInst          *jq.Jq `yaml:"-"`
 	ValJqInst       *jq.Jq `yaml:"-"`
@@ -54,8 +55,17 @@ func ReadSpecFromYamlFile(path string) (*ExporterSpec, error) {
 		return nil, err
 	}
 
+	return readSpec(&data)
+}
+
+func ReadSpecFromYamlString(yaml string) (*ExporterSpec, error) {
+	bytes := []byte(yaml)
+	return readSpec(&bytes)
+}
+
+func readSpec(yamlBytes *[]byte) (*ExporterSpec, error) {
 	var ex ExporterSpec
-	err = yaml.Unmarshal(data, &ex)
+	err := yaml.Unmarshal(*yamlBytes, &ex)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +84,7 @@ func ReadSpecFromYamlFile(path string) (*ExporterSpec, error) {
 }
 
 func validateSpec(ex *ExporterSpec) error {
-	// TODO
-	return nil
+	return ex.Validate()
 }
 
 func compileJqsInSpec(ex *ExporterSpec) error {
@@ -123,4 +132,67 @@ func compileJq(selector string) (*jq.Jq, error) {
 		return nil, errors.New(msg)
 	}
 	return jqInst, nil
+}
+
+func (s *ExporterSpec) Validate() error {
+	for _, ep := range s.Endpoints {
+		err := ep.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *EndpointSpec) Validate() error {
+	if s.Port <= 0 {
+		return errors.New("Endpoint 'port' must be > 0")
+	}
+
+	for _, t := range s.Targets {
+		err := t.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *TargetSpec) Validate() error {
+	if s.URL == "" {
+		return errors.New("Target must have 'url'")
+	}
+	for _, m := range s.Metrics {
+		err := m.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *MetricSpec) Validate() error {
+	if s.Name == "" {
+		return errors.New("Metric must have 'name'")
+	}
+	if s.Selector == "" {
+		return errors.New("Metric must have 'selector'")
+	}
+	for _, l := range s.Labels {
+		err := l.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *LabelSpec) Validate() error {
+	if s.Name == "" {
+		return errors.New("Label must have 'name'")
+	}
+	if s.Selector == "" && s.FixedValue == "" {
+		return errors.New("Label must have 'selector' or 'fixed_value'")
+	}
+	return nil
 }

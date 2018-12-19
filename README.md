@@ -66,3 +66,5 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 --disable-shared --enable-static 
 https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
 
 ## todos
+
+- targets w/ authentication
