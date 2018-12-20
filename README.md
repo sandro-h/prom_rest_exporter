@@ -6,7 +6,52 @@ prom_rest_exporter translates arbitrary REST endpoints to metrics for [Prometheu
 
 It uses the excellent [jq](https://github.com/stedolan/jq) to transform JSON responses to numeric metric values.
 
-prom_rest_exporter runs as a process exposing one or more /metrics endpoints for Prometheus.
+prom_rest_exporter runs as a process exposing one or more `/metrics` endpoints for Prometheus.
+
+## Installation
+
+Download one of the released binaries.
+
+Run the binary to start prom_rest_exporter.
+It expects a configuration file, see below.
+
+## Configuration
+
+To configure what REST endpoints should be exported and how,
+create a `prom_rest_exporter.yml` YAML file.
+
+You can also name it differently and use `--config <path/to/config.yml>` to load it.
+
+Simple config example:
+```yaml
+endpoints:
+    # Run on 0.0.0.0:9011/metrics
+  - port: 9011
+    targets:
+        # Get data from this REST endpoint
+      - url: https://reqres.in/api/users
+        metrics:
+          - name: user_count
+            description: Number of users
+            type: gauge
+            # jq program to extract a numeric value from the REST response
+            selector: "[.data[].last_name] | length"
+```
+
+See [config.md](config.md) for more detailed information.
+
+## Logging
+
+prom_rest_exporter will write log output to `prom_rest_exporter.log` in the working directory.
+
+Log details can be increased with the `--debug` and `--trace` command-line flags.
+
+## Error handling
+
+Failures during metric collection, such as REST endpoint downtimes or non-matching metric selectors, are logged but the collection continues for the remaining targets and metrics.
+
+Any metrics that could not be extracted due to errors are simply skipped. Thus, Prometheus will show a "No data" gap when errors occur, and appropriate alerts can be set up for this.
+
 
 ## Development
 
@@ -66,5 +111,6 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
 
 ## Todos
 
-- documentation
-- dependency management
+- meta metrics per target
+  - response time
+  - errors

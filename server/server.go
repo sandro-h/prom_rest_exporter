@@ -19,7 +19,7 @@ type MetricServer struct {
 }
 
 func (srv *MetricServer) Start() {
-	log.Infof("Starting metric endpoint at localhost:%d/metrics", srv.Endpoint.Port)
+	log.Infof("Starting metric endpoint at 0.0.0.0:%d/metrics", srv.Endpoint.Port)
 
 	var ct time.Duration
 	if srv.Endpoint.CacheTimeSeconds > 0 {
@@ -35,7 +35,7 @@ func (srv *MetricServer) Start() {
 
 	srv.srv = &http.Server{
 		Handler:      router,
-		Addr:         fmt.Sprintf("localhost:%d", srv.Endpoint.Port),
+		Addr:         fmt.Sprintf("0.0.0.0:%d", srv.Endpoint.Port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
