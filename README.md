@@ -10,10 +10,16 @@ prom_rest_exporter runs as a process exposing one or more /metrics endpoints for
 
 ## Development
 
+Dependencies are managed with [dep](https://github.com/golang/dep).
+Fetch all necessary dependencies with:
+```bash
+dep ensure
+```
+
+### jq dependency
+
 Building prom_rest_exporter requires compiled
 [jq](https://github.com/stedolan/jq) libraries.
-
-### Fetching jq sources and build tools
 
 ```bash
 git clone https://github.com/stedolan/jq.git jq-master
