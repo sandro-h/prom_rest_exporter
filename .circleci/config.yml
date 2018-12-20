@@ -10,13 +10,28 @@ jobs:
     steps:
       - checkout
 
+      ##############################
+      # Fetch dependencies
+      ##############################
+      - restore_cache:
+          name: Restore dependency cache
+          keys:
+            - v1-deps-{{ checksum "Gopkg.lock" }}
       - run:
           name: Install go dep
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run: 
           name: Get dependencies
           command: dep ensure --vendor-only -v
+      - save_cache:
+          name: Save dependency cache
+          paths:
+            - vendor
+          key: v1-deps-{{ checksum "Gopkg.lock" }}
 
+      ##############################
+      # Build jq
+      ##############################
       - run:
           name: Install build tools
           command: sudo apt install  autoconf make libtool flex bison gcc-mingw-w64-x86-64
@@ -71,6 +86,9 @@ jobs:
             - jq-master
           key: v3-jq
 
+      ##############################
+      # Test and build prom_rest_exporter
+      ##############################
       - run:
           name: Test
           command: go test -v ./...
