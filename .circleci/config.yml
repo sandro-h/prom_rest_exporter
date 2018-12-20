@@ -9,15 +9,13 @@ jobs:
 
     steps:
       - checkout
+
+      - run:
+          name: Install go dep
+          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run: 
           name: Get dependencies
-          command: |
-            go get github.com/stretchr/testify
-            go get gopkg.in/yaml.v2
-            go get github.com/gorilla/mux
-            go get github.com/patrickmn/go-cache
-            go get github.com/sirupsen/logrus            
-            GOOS=windows go get github.com/konsorten/go-windows-terminal-sequences
+          command: dep ensure --vendor-only -v
 
       - run:
           name: Install build tools
