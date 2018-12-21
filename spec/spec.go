@@ -14,9 +14,11 @@ type ExporterSpec struct {
 }
 
 type EndpointSpec struct {
+	Host             string
 	Port             int
 	Targets          []*TargetSpec
-	CacheTimeSeconds int `yaml:"cache_time"`
+	CacheTimeSeconds int  `yaml:"cache_time"`
+	InclMetaMetrics  bool `yaml:"meta_metrics"`
 }
 
 type TargetSpec struct {

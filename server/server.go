@@ -19,7 +19,11 @@ type MetricServer struct {
 }
 
 func (srv *MetricServer) Start() {
-	log.Infof("Starting metric endpoint at 0.0.0.0:%d/metrics", srv.Endpoint.Port)
+	host := "localhost"
+	if srv.Endpoint.Host != "" {
+		host = srv.Endpoint.Host
+	}
+	log.Infof("Starting metric endpoint at %s:%d/metrics", host, srv.Endpoint.Port)
 
 	var ct time.Duration
 	if srv.Endpoint.CacheTimeSeconds > 0 {
@@ -35,7 +39,7 @@ func (srv *MetricServer) Start() {
 
 	srv.srv = &http.Server{
 		Handler:      router,
-		Addr:         fmt.Sprintf("0.0.0.0:%d", srv.Endpoint.Port),
+		Addr:         fmt.Sprintf("%s:%d", host, srv.Endpoint.Port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -50,7 +54,7 @@ func (srv *MetricServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	if found {
 		vals = cachedVals.([]scrape.MetricInstance)
 	} else {
-		vals = scrape.ScrapeTargets(srv.Endpoint.Targets)
+		vals = scrape.ScrapeTargets(srv.Endpoint.Targets, srv.Endpoint.InclMetaMetrics)
 		srv.cache.Set("metrics", vals, cache.DefaultExpiration)
 	}
 

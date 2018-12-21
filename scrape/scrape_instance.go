@@ -17,6 +17,21 @@ type MetricValue struct {
 	labelVals map[string]string
 }
 
+func NewWithIntValue(name string, value int, description string, metricType string, labelName string, labelVal string) MetricInstance {
+	labels := map[string]string{}
+	if labelName != "" {
+		labels[labelName] = labelVal
+	}
+	return MetricInstance{
+		[]MetricValue{MetricValue{
+			value:     value,
+			labelVals: labels}},
+		&spec.MetricSpec{
+			Name:        name,
+			Description: description,
+			Type:        metricType}}
+}
+
 func (val *MetricInstance) Print(w io.Writer) {
 	val.print(w, false)
 }

@@ -24,11 +24,13 @@ The prom_rest_exporter configuration is a YAML file. It defines one or more `/me
 
 ### Endpoint options
 
-| Option      | Required | Description                                          |
-| ----------- | -------- | ---------------------------------------------------- |
-| **port**    | Yes      | Port to listen for `/metrics` requests from Prometheus |
-| **targets** | Yes      | List of Target options                               |
-| cache_time  | No       | Number of seconds to cache last result for this `/metrics` endpoint. Overrides global cache time.            |
+| Option       | Required | Description                                          |
+| ------------ | -------- | ---------------------------------------------------- |
+| **port**     | Yes      | Port to listen for `/metrics` requests from Prometheus |
+| **targets**  | Yes      | List of Target options                               |
+| host         | No       | Host to listen for `/metrics` requests from Prometheus. Default: `localhost` |
+| meta_metrics | No       | If true, includes additional meta metrics like REST response times and number of collected metrics. |
+| cache_time   | No       | Number of seconds to cache last result for this `/metrics` endpoint. Overrides global cache time.            |
 
 ### Target options
 
@@ -87,7 +89,7 @@ endpoints:
             selector: ".total"
 ```
 
-This configuration exposes a `http://0.0.0.0:9011/metrics` endpoint.  
+This configuration exposes a `http://localhost:9011/metrics` endpoint.  
 When this is called, a REST call is made to `https://reqres.in/api/users`.  
 One metric `user_count` is extracted from the REST response using the jq program
 to get the user count from the `total` field.
@@ -186,8 +188,12 @@ cache_time: 60
 endpoints:
   # Port to run /metrics endpoint on
   - port: 9011
+    # Host on 0.0.0.0 instead of localhost
+    host: 0.0.0.0
     # Cache time for just this endpoint in seconds
     cache_time: 30
+    # Include meta metrics like response times
+    meta_metrics: yes
     targets:
       # REST endpoint to get data from
       - url: https://reqres.in/api/users

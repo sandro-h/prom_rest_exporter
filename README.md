@@ -25,7 +25,7 @@ You can also name it differently and use `--config <path/to/config.yml>` to load
 Simple config example:
 ```yaml
 endpoints:
-    # Run on 0.0.0.0:9011/metrics
+    # Run on localhost:9011/metrics
   - port: 9011
     targets:
         # Get data from this REST endpoint
