@@ -120,7 +120,6 @@ func (jq *Jq) ProcessInput(input string) ([]*Jv, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer C.jv_free(jvInput.jv)
 	return jq.processInput(jvInput, false)
 }
 
@@ -131,7 +130,6 @@ func (jq *Jq) ProcessInputFirstOnly(input string) ([]*Jv, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer C.jv_free(jvInput.jv)
 	return jq.processInput(jvInput, true)
 }
 
