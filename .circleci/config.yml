@@ -38,7 +38,25 @@ jobs:
 
       - restore_cache:
           name: Restore jq cache
-          key: v3-jq
+          key: v5-jq
+
+      - run:
+          name: Download musl
+          command: |
+            if [ ! -d musl-1.1.20 ]; then 
+              wget https://www.musl-libc.org/releases/musl-1.1.20.tar.gz
+              tar xf musl-1.1.20.tar.gz
+            fi
+
+      - run:
+          name: Build musl
+          working_directory: /go/src/vary/prom_rest_exporter/musl-1.1.20
+          command: |
+            if [ ! -d build ]; then
+              ./configure --enable-gcc-wrapper --disable-shared --prefix=$PWD/build
+              make
+              make install
+            fi
 
       - run:
           name: Download jq master
@@ -55,10 +73,10 @@ jobs:
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
             if [ ! -d build/win64 ]; then
-              git submodule update --init && \
-              autoreconf -fi && \
-              ./configure && \
-              make distclean && \
+              git submodule update --init
+              autoreconf -fi
+              ./configure
+              make distclean
               CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
                 --disable-shared \
                 --enable-static \
@@ -73,10 +91,11 @@ jobs:
           working_directory: /go/src/vary/prom_rest_exporter/jq-master
           command: |
             if [ ! -d build/linux ]; then
-              autoreconf -fi && \
-              ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local && \
-              make -j8 && \
-              make install && \
+              autoreconf -fi
+              ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local
+              sed -i 's/-DHAVE_GAMMA=1//' Makefile
+              make -j8 LDFLAGS="-all-static" CC=$PWD/../musl-1.1.20/build/bin/musl-gcc
+              make install
               rm -f build/linux/usr/local/lib/*.so*
             fi
 
@@ -84,18 +103,25 @@ jobs:
           name: Save jq cache
           paths:
             - jq-master
-          key: v3-jq
+            - musl-1.1.20
+          key: v5-jq
 
       ##############################
       # Test and build prom_rest_exporter
       ##############################
       - run:
           name: Test
-          command: go test -v ./...
+          command: |
+            CC=$PWD/musl-1.1.20/build/bin/musl-gcc \
+            go test -v ./... \
+            --ldflags '-linkmode external -extldflags "-static"'
 
       - run:
           name: Build for linux
-          command: go build -v
+          command: |
+            CC=$PWD/musl-1.1.20/build/bin/musl-gcc \
+            go build \
+            --ldflags '-linkmode external -extldflags "-static"'
 
       - run:
           name: Build for windows
