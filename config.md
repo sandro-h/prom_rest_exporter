@@ -1,6 +1,6 @@
 # Configuration
 
-The prom_rest_exporter configuration is a YAML file. It defines one or more `/metrics` endpoints that transform REST endpoints into metrics.
+The prom_rest_exporter configuration is a YAML file. It defines one or more `/metrics` endpoints that transform REST responses into metrics for Prometheus.
 
 1. [Options](#options)  
   1.1. [Global options](#global-options)  
