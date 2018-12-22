@@ -1,6 +1,6 @@
 ### prom_rest_exporter
 
-[![CircleCI](https://circleci.com/bb/mentalvary/prom_rest_exporter.svg?style=svg)](https://circleci.com/bb/mentalvary/prom_rest_exporter)
+[![CircleCI](https://circleci.com/gh/sandro-h/prom_rest_exporter.svg?style=svg)](https://circleci.com/gh/sandro-h/prom_rest_exporter)
 
 prom_rest_exporter translates arbitrary REST endpoints to metrics for [Prometheus](https://prometheus.io/).
 
