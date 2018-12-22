@@ -35,7 +35,7 @@ endpoints:
             description: Number of users
             type: gauge
             # jq program to extract a numeric value from the REST response
-            selector: "[.data[].last_name] | length"
+            selector: ".total"
 ```
 
 See [config.md](config.md) for more detailed information.
@@ -108,9 +108,3 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
 --host=x86_64-w64-mingw32 \
 --with-oniguruma=builtin
 ```
-
-## Todos
-
-- meta metrics per target
-  - response time
-  - errors
