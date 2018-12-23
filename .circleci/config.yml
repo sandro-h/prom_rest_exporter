@@ -113,7 +113,7 @@ jobs:
           name: Test
           command: |
             CC=$PWD/musl-1.1.20/build/bin/musl-gcc \
-            go test -v ./... \
+            go test -v -coverprofile="coverage.out" ./... \
             --ldflags '-linkmode external -extldflags "-static"'
 
       - run:
@@ -133,3 +133,32 @@ jobs:
       - store_artifacts:
           path: prom_rest_exporter.exe
           destination: binaries/prom_rest_exporter.exe
+
+      ##############################
+      # Sonar
+      ##############################
+
+      - restore_cache:
+          name: Restore buildtools cache
+          key: v1-buildtools
+
+      - run:
+          name: Fetch sonar scanner
+          command: |
+            if [ ! -d buildtools/sonar-scanner-3.2.0.1227-linux ]; then
+              wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+              unzip -d buildtools/ sonar-scanner-cli-3.2.0.1227-linux.zip
+            fi
+
+      - save_cache:
+          name: Save buildtools cache
+          paths:
+            - buildtools
+          key: v1-buildtools
+
+      - run:
+          name: Run sonar analysis
+          command: |
+            buildtools/sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.login=$SONAR_TOKEN

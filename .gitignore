@@ -1,3 +1,6 @@
 jq-master/
 prom_rest_exporter.exe
 vendor/
+coverage.out
+.scannerwork/
+buildtools/
