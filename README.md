@@ -1,6 +1,9 @@
 ### prom_rest_exporter
 
 [![CircleCI](https://circleci.com/gh/sandro-h/prom_rest_exporter.svg?style=svg)](https://circleci.com/gh/sandro-h/prom_rest_exporter)
+[![Sonar](https://sonarcloud.io/api/project_badges/measure?project=sandro-h_prom_rest_exporter&metric=alert_status)](https://sonarcloud.io/dashboard?id=sandro-h_prom_rest_exporter)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sandro-h_prom_rest_exporter&metric=coverage)](https://sonarcloud.io/dashboard?id=sandro-h_prom_rest_exporter)
+
 
 prom_rest_exporter translates arbitrary REST endpoints to metrics for [Prometheus](https://prometheus.io/).
 
