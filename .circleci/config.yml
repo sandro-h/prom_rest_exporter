@@ -16,7 +16,7 @@ jobs:
       - restore_cache:
           name: Restore dependency cache
           keys:
-            - v1-deps-{{ checksum "Gopkg.lock" }}
+            - v2-deps-{{ checksum "Gopkg.lock" }}
       - run:
           name: Install go dep
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
@@ -27,7 +27,7 @@ jobs:
           name: Save dependency cache
           paths:
             - vendor
-          key: v1-deps-{{ checksum "Gopkg.lock" }}
+          key: v2-deps-{{ checksum "Gopkg.lock" }}
 
       ##############################
       # Build jq
@@ -38,7 +38,7 @@ jobs:
 
       - restore_cache:
           name: Restore jq cache
-          key: v5-jq
+          key: v6-jq
 
       - run:
           name: Download musl
@@ -104,7 +104,7 @@ jobs:
           paths:
             - jq-master
             - musl-1.1.20
-          key: v5-jq
+          key: v6-jq
 
       ##############################
       # Test and build prom_rest_exporter
@@ -140,7 +140,7 @@ jobs:
 
       - restore_cache:
           name: Restore buildtools cache
-          key: v1-buildtools
+          key: v2-buildtools
 
       - run:
           name: Fetch sonar scanner
@@ -154,7 +154,7 @@ jobs:
           name: Save buildtools cache
           paths:
             - buildtools
-          key: v1-buildtools
+          key: v2-buildtools
 
       - run:
           name: Run sonar analysis
