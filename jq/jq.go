@@ -1,10 +1,10 @@
 package jq
 
 /*
-#cgo windows CFLAGS: -I../jq-master/build/win64/usr/local/include
-#cgo windows LDFLAGS: -L../jq-master/build/win64/usr/local/lib -ljq -lonig -lshlwapi
-#cgo linux CFLAGS: -I../jq-master/build/linux/usr/local/include
-#cgo linux LDFLAGS: -L../jq-master/build/linux/usr/local/lib -ljq -lonig -lm
+#cgo windows CFLAGS: -I../vendorc/jq-master/build/win64/usr/local/include
+#cgo windows LDFLAGS: -L../vendorc/jq-master/build/win64/usr/local/lib -ljq -lonig -lshlwapi
+#cgo linux CFLAGS: -I../vendorc/jq-master/build/linux/usr/local/include
+#cgo linux LDFLAGS: -L../vendorc/jq-master/build/linux/usr/local/lib -ljq -lonig -lm
 #include <jq.h>
 #include <jv.h>
 #include <stdlib.h>

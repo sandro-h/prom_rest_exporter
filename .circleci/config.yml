@@ -30,27 +30,29 @@ jobs:
           key: v2-deps-{{ checksum "Gopkg.lock" }}
 
       ##############################
-      # Build jq
+      # Build C dependencies
       ##############################
       - run:
-          name: Install build tools
+          name: Install C build tools
           command: sudo apt install  autoconf make libtool flex bison gcc-mingw-w64-x86-64
 
       - restore_cache:
-          name: Restore jq cache
-          key: v6-jq
+          name: Restore c dependency cache
+          key: v1-c-deps
 
       - run:
           name: Download musl
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/vendorc
           command: |
-            if [ ! -d musl-1.1.20 ]; then 
+            if [ ! -d musl ]; then 
               wget https://www.musl-libc.org/releases/musl-1.1.20.tar.gz
               tar xf musl-1.1.20.tar.gz
+              mv musl-1.1.20 musl
             fi
 
       - run:
           name: Build musl
-          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/musl-1.1.20
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/vendorc/musl
           command: |
             if [ ! -d build ]; then
               ./configure --enable-gcc-wrapper --disable-shared --prefix=$PWD/build
@@ -60,6 +62,7 @@ jobs:
 
       - run:
           name: Download jq master
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/vendorc
           command: |
             if [ ! -d jq-master ]; then 
               git clone https://github.com/stedolan/jq.git jq-master
@@ -70,7 +73,7 @@ jobs:
 
       - run:
           name: Build jq for windows
-          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/jq-master
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/vendorc/jq-master
           command: |
             if [ ! -d build/win64 ]; then
               git submodule update --init
@@ -88,23 +91,22 @@ jobs:
 
       - run:
           name: Build jq for linux
-          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/jq-master
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/vendorc/jq-master
           command: |
             if [ ! -d build/linux ]; then
               autoreconf -fi
               ./configure --with-oniguruma=builtin --prefix=$PWD/build/linux/usr/local
               sed -i 's/-DHAVE_GAMMA=1//' Makefile
-              make -j8 LDFLAGS="-all-static" CC=$PWD/../musl-1.1.20/build/bin/musl-gcc
+              make -j8 LDFLAGS="-all-static" CC=$PWD/../musl/build/bin/musl-gcc
               make install
               rm -f build/linux/usr/local/lib/*.so*
             fi
 
       - save_cache:
-          name: Save jq cache
+          name: Save c dependency cache
           paths:
-            - jq-master
-            - musl-1.1.20
-          key: v6-jq
+            - vendorc
+          key: v1-c-deps
 
       ##############################
       # Test and build prom_rest_exporter
@@ -112,14 +114,14 @@ jobs:
       - run:
           name: Test
           command: |
-            CC=$PWD/musl-1.1.20/build/bin/musl-gcc \
+            CC=$PWD/vendorc/musl/build/bin/musl-gcc \
             go test -v -coverprofile="coverage.out" ./... \
             --ldflags '-linkmode external -extldflags "-static"'
 
       - run:
           name: Build for linux
           command: |
-            CC=$PWD/musl-1.1.20/build/bin/musl-gcc \
+            CC=$PWD/vendorc/musl/build/bin/musl-gcc \
             go build \
             --ldflags '-linkmode external -extldflags "-static"'
 
@@ -140,25 +142,26 @@ jobs:
 
       - restore_cache:
           name: Restore buildtools cache
-          key: v2-buildtools
+          key: v3-buildtools
 
       - run:
           name: Fetch sonar scanner
           command: |
-            if [ ! -d buildtools/sonar-scanner-3.2.0.1227-linux ]; then
+            if [ ! -d buildtools/sonar-scanner ]; then
               wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
               unzip -d buildtools/ sonar-scanner-cli-3.2.0.1227-linux.zip
+              mv buildtools/sonar-scanner-3.2.0.1227-linux buildtools/sonar-scanner
             fi
 
       - save_cache:
           name: Save buildtools cache
           paths:
             - buildtools
-          key: v2-buildtools
+          key: v3-buildtools
 
       - run:
           name: Run sonar analysis
           command: |
-            buildtools/sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner \
+            buildtools/sonar-scanner/bin/sonar-scanner \
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.login=$SONAR_TOKEN

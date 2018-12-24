@@ -67,9 +67,10 @@ dep ensure
 ### jq dependency
 
 Building prom_rest_exporter requires compiled
-[jq](https://github.com/stedolan/jq) libraries.
+[jq](https://github.com/stedolan/jq) libraries in the `vendorc/` folder.
 
 ```bash
+cd vendorc
 git clone https://github.com/stedolan/jq.git jq-master
 cd jq-master
 git checkout jq-1.6

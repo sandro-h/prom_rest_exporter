@@ -1,6 +1,6 @@
-jq-master/
 prom_rest_exporter.exe
 vendor/
+vendorc/
 coverage.out
 .scannerwork/
 buildtools/
