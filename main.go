@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"flag"
+	"github.com/sandro-h/prom_rest_exporter/server"
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"vary/prom_rest_exporter/server"
-	"vary/prom_rest_exporter/spec"
 )
 
 var debug = flag.Bool("debug", false, "Enables detailed debug logging")

@@ -1,12 +1,12 @@
 package server
 
 import (
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
-	"vary/prom_rest_exporter/spec"
 )
 
 func TestMain(m *testing.M) {

@@ -3,9 +3,9 @@ package spec
 import (
 	"errors"
 	"fmt"
+	"github.com/sandro-h/prom_rest_exporter/jq"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"vary/prom_rest_exporter/jq"
 )
 
 type ExporterSpec struct {

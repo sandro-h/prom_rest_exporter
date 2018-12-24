@@ -1,13 +1,13 @@
 package scrape
 
 import (
+	"github.com/sandro-h/prom_rest_exporter/jq"
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
-	"vary/prom_rest_exporter/jq"
-	"vary/prom_rest_exporter/spec"
 )
 
 var getNow = func() time.Time {

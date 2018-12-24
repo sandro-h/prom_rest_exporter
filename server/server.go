@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/patrickmn/go-cache"
+	"github.com/sandro-h/prom_rest_exporter/scrape"
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
-	"vary/prom_rest_exporter/scrape"
-	"vary/prom_rest_exporter/spec"
 )
 
 type MetricServer struct {

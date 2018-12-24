@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"sort"
 	"strings"
 	"testing"
 	"time"
-	"vary/prom_rest_exporter/spec"
 )
 
 func TestScrape(t *testing.T) {

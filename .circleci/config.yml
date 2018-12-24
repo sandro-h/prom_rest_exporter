@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/vary/prom_rest_exporter
+    working_directory: /go/src/github.com/sandro-h/prom_rest_exporter
     environment:
 
     docker:
@@ -50,7 +50,7 @@ jobs:
 
       - run:
           name: Build musl
-          working_directory: /go/src/vary/prom_rest_exporter/musl-1.1.20
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/musl-1.1.20
           command: |
             if [ ! -d build ]; then
               ./configure --enable-gcc-wrapper --disable-shared --prefix=$PWD/build
@@ -70,7 +70,7 @@ jobs:
 
       - run:
           name: Build jq for windows
-          working_directory: /go/src/vary/prom_rest_exporter/jq-master
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/jq-master
           command: |
             if [ ! -d build/win64 ]; then
               git submodule update --init
@@ -88,7 +88,7 @@ jobs:
 
       - run:
           name: Build jq for linux
-          working_directory: /go/src/vary/prom_rest_exporter/jq-master
+          working_directory: /go/src/github.com/sandro-h/prom_rest_exporter/jq-master
           command: |
             if [ ! -d build/linux ]; then
               autoreconf -fi

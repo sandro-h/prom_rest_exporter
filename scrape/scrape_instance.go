@@ -2,9 +2,9 @@ package scrape
 
 import (
 	"fmt"
+	"github.com/sandro-h/prom_rest_exporter/spec"
 	"io"
 	"sort"
-	"vary/prom_rest_exporter/spec"
 )
 
 type MetricInstance struct {
