@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
@@ -19,10 +20,11 @@ func startup() {
 	spec, _ := spec.ReadSpecFromYamlFile("testdata/server_test_spec.yml")
 	srv := MetricServer{Endpoint: spec.Endpoints[0]}
 	go srv.Start()
+	time.Sleep(100 * time.Millisecond)
 }
 
 func TestRequestMetrics(t *testing.T) {
-	resp, err := fetch("http://localhost:9011/metrics")
+	resp, err := tryFetch("http://localhost:9011/metrics", 3)
 	assert.Nil(t, err)
 	assert.Equal(t,
 		`# HELP user_count Number of users
@@ -35,6 +37,15 @@ user_count_total 12.500000
 
 `,
 		resp)
+}
+
+func tryFetch(url string, retries int) (string, error) {
+	resp, err := fetch(url)
+	for i := 0; i < retries && err != nil; i++ {
+		time.Sleep(500 * time.Millisecond)
+		resp, err = fetch(url)
+	}
+	return resp, err
 }
 
 func fetch(url string) (string, error) {
