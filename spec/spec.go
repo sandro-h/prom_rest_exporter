@@ -80,7 +80,7 @@ func readSpec(yamlBytes *[]byte) (*ExporterSpec, error) {
 		return nil, err
 	}
 
-	err = compileJqsInSpec(&ex)
+	err = postProcessSpec(&ex)
 	if err != nil {
 		return nil, err
 	}
@@ -92,40 +92,56 @@ func validateSpec(ex *ExporterSpec) error {
 	return ex.Validate()
 }
 
-func compileJqsInSpec(ex *ExporterSpec) error {
+func postProcessSpec(ex *ExporterSpec) error {
 	var err error
 	for _, e := range ex.Endpoints {
 		for _, t := range e.Targets {
 			for _, m := range t.Metrics {
-				// Compile metric selectors
-				m.JqInst, err = compileJq(m.Selector)
+				err = compileMetricSelectors(m)
 				if err != nil {
 					return err
 				}
 
-				// Compile metric value selectors
-				if m.ValSelector != "" && m.ValSelector != "." {
-					m.ValJqInst, err = compileJq(m.ValSelector)
-					if err != nil {
-						return err
-					}
-				}
-
-				// Compile metric label selectors
-				m.OnlyFixedLabels = true
-				for _, l := range m.Labels {
-					if l.FixedValue == "" && l.Selector != "" {
-						l.JqInst, err = compileJq(l.Selector)
-						if err != nil {
-							return err
-						}
-						m.OnlyFixedLabels = false
-					}
+				err = compileMetricLabels(m)
+				if err != nil {
+					return err
 				}
 			}
 		}
 	}
 
+	return nil
+}
+
+func compileMetricSelectors(m *MetricSpec) error {
+	var err error
+	m.JqInst, err = compileJq(m.Selector)
+	if err != nil {
+		return err
+	}
+
+	if m.ValSelector != "" && m.ValSelector != "." {
+		m.ValJqInst, err = compileJq(m.ValSelector)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func compileMetricLabels(m *MetricSpec) error {
+	var err error
+	m.OnlyFixedLabels = true
+	for _, l := range m.Labels {
+		if l.FixedValue == "" && l.Selector != "" {
+			l.JqInst, err = compileJq(l.Selector)
+			if err != nil {
+				return err
+			}
+			m.OnlyFixedLabels = false
+		}
+	}
 	return nil
 }
 

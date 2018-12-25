@@ -198,7 +198,7 @@ func (jv *Jv) ToNumber() interface{} {
 	return int(dbl)
 }
 
-func (jv *Jv) _toString(flags C.int) string {
+func (jv *Jv) toString(flags C.int) string {
 	jvStr := C.jv_dump_string(jv.Copy().jv, flags)
 	defer C.jv_free(jvStr)
 	str := C.GoString(C.jv_string_value(jvStr))
@@ -211,11 +211,11 @@ func (jv *Jv) _toString(flags C.int) string {
 
 // ToString returns a non-pretty-print string representation of the json value
 func (jv *Jv) ToString() string {
-	return jv._toString(C.int(0))
+	return jv.toString(C.int(0))
 }
 
 // PrettyPrint pretty prints the json value to stdout
 func (jv *Jv) PrettyPrint() {
 	prettyFlags := C.int(C.JV_PRINT_PRETTY | C.JV_PRINT_SPACE1)
-	fmt.Printf("%s\n", jv._toString(prettyFlags))
+	fmt.Printf("%s\n", jv.toString(prettyFlags))
 }
