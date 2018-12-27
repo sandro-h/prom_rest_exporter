@@ -54,10 +54,10 @@ func scrapeTarget(t *spec.TargetSpec, metas *map[string]*MetricInstance) (*[]Met
 	}
 	log.Tracef("Data from %s: %s", t.URL, restResponse)
 
-	metrics, metricFails := extractMetrics(t, &restResponse)
+	metrics, skippedMetrics := extractMetrics(t, &restResponse)
 
 	if metas != nil {
-		computeTargetMetaMetrics(metas, t.URL, fetchDuration, metricFails)
+		computeTargetMetaMetrics(metas, t.URL, fetchDuration, skippedMetrics)
 	}
 
 	return metrics, nil
@@ -65,34 +65,35 @@ func scrapeTarget(t *spec.TargetSpec, metas *map[string]*MetricInstance) (*[]Met
 
 func extractMetrics(t *spec.TargetSpec, restResponse *string) (*[]MetricInstance, int) {
 	metrics := make([]MetricInstance, 0)
-	metricFails := 0
+	skippedMetrics := 0
 	for _, m := range t.Metrics {
-		results, err := m.JqInst.ProcessInput(*restResponse)
+		baseVals, err := m.JqInst.ProcessInput(*restResponse)
 		if err != nil {
 			log.Errorf("Error processing input of %s for metric %s: %s", t.URL, m.Name, err)
-			metricFails++
+			skippedMetrics++
 		} else {
 			metricVals := make([]MetricValue, 0)
-			for _, res := range results {
-				val := getValue(m, res)
+			for _, base := range baseVals {
+				val := getValue(m, base)
 
 				if val == nil {
 					log.Errorf("Error processing input of %s for metric %s: no valid value found", t.URL, m.Name)
-					metricFails++
 				} else {
-					labels := getLabels(m, res)
+					labels := getLabels(m, base)
 					metricVals = append(metricVals, MetricValue{val, labels})
 				}
 			}
 			if len(metricVals) > 0 {
 				val := MetricInstance{metricVals, m}
 				metrics = append(metrics, val)
+			} else {
+				skippedMetrics++
 			}
-			freeResults(results)
+			freeResults(baseVals)
 		}
 	}
 
-	return &metrics, metricFails
+	return &metrics, skippedMetrics
 }
 
 // Does not consume res. Returns int, float64, or nil
@@ -145,7 +146,7 @@ func getLabels(m *spec.MetricSpec, res *jq.Jv) map[string]string {
 
 func computeTargetMetaMetrics(metas *map[string]*MetricInstance,
 	fetchURL string, fetchDuration time.Duration,
-	metricFails int) {
+	skippedMetrics int) {
 	addMetaMetric(metas,
 		NewWithIntValue("prom_rest_exp_response_time", int(fetchDuration/time.Millisecond),
 			"Response time from REST endpoint",
@@ -154,8 +155,8 @@ func computeTargetMetaMetrics(metas *map[string]*MetricInstance,
 			fetchURL))
 
 	addMetaMetric(metas,
-		NewWithIntValue("prom_rest_exp_metric_fails", metricFails,
-			"Number of failures during metrics collection",
+		NewWithIntValue("prom_rest_exp_skipped_metrics", skippedMetrics,
+			"Number of metrics skipped due to failures or invalid data",
 			"gauge",
 			"url",
 			fetchURL))

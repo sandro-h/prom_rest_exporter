@@ -155,10 +155,6 @@ func TestMetaMetrics(t *testing.T) {
 # TYPE prom_rest_exp_last_exec_time gauge
 prom_rest_exp_last_exec_time 1545391515
 
-# HELP prom_rest_exp_metric_fails Number of failures during metrics collection
-# TYPE prom_rest_exp_metric_fails gauge
-prom_rest_exp_metric_fails{url="file://testdata/scrape_test_data.json"} 0
-
 # HELP prom_rest_exp_metrics_count Number of metrics returned in this call (not including same metric with multiple values)
 # TYPE prom_rest_exp_metrics_count gauge
 prom_rest_exp_metrics_count 2
@@ -166,6 +162,10 @@ prom_rest_exp_metrics_count 2
 # HELP prom_rest_exp_response_time Response time from REST endpoint
 # TYPE prom_rest_exp_response_time gauge
 prom_rest_exp_response_time{url="file://testdata/scrape_test_data.json"} 0
+
+# HELP prom_rest_exp_skipped_metrics Number of metrics skipped due to failures or invalid data
+# TYPE prom_rest_exp_skipped_metrics gauge
+prom_rest_exp_skipped_metrics{url="file://testdata/scrape_test_data.json"} 0
 
 # HELP prom_rest_exp_values_count Number of values returned, including metric with multiple values
 # TYPE prom_rest_exp_values_count gauge

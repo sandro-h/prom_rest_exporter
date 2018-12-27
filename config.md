@@ -48,7 +48,7 @@ The prom_rest_exporter configuration is a YAML file. It defines one or more `/me
 | ------------ | -------- | ------------------------------------------------- |
 | **name**     | Yes      | Name of the metric                                |
 | **selector** | Yes      | jq program to extract value(s) from REST response |
-| val_selector | No       | jq program applied to each extracted value to get numeric value (Default: `.`) |
+| val_selector | No       | jq program applied to each extracted value to get numeric value. Default: `.` |
 | description  | No       | Metric description added as HELP comment to `/metrics` response |
 | type         | No       | Metric type added as TYPE comment to `/metrics` response |
 | labels       | No       | List of Label options                             |

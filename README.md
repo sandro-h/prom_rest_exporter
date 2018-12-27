@@ -55,6 +55,8 @@ Failures during metric collection, such as REST endpoint downtimes or non-matchi
 
 Any metrics that could not be extracted due to errors are simply skipped. Thus, Prometheus will show a "No data" gap when errors occur, and appropriate alerts can be set up for this.
 
+If you enable `meta_metrics` in your configuration, you will also get the number of skipped
+metrics (`prom_rest_exp_skipped_metrics`) per REST endpoint, and can alert on that.
 
 ## Development
 
@@ -112,3 +114,17 @@ CPPFLAGS=-I$PWD/src scripts/crosscompile win64 \
 --host=x86_64-w64-mingw32 \
 --with-oniguruma=builtin
 ```
+
+### Building and testing
+
+**Build**
+```bash
+go build
+```
+
+**Test**
+```bash
+go test ./...
+```
+
+Also see [.circleci/config.yml](.circleci/config.yml) for more information on the build process.
