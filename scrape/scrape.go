@@ -72,19 +72,9 @@ func extractMetrics(t *spec.TargetSpec, restResponse *string) (*[]MetricInstance
 			log.Errorf("Error processing input of %s for metric %s: %s", t.URL, m.Name, err)
 			skippedMetrics++
 		} else {
-			metricVals := make([]MetricValue, 0)
-			for _, base := range baseVals {
-				val := getValue(m, base)
-
-				if val == nil {
-					log.Errorf("Error processing input of %s for metric %s: no valid value found", t.URL, m.Name)
-				} else {
-					labels := getLabels(m, base)
-					metricVals = append(metricVals, MetricValue{val, labels})
-				}
-			}
-			if len(metricVals) > 0 {
-				val := MetricInstance{metricVals, m}
+			vals := extractFromBaseValues(m, &baseVals)
+			if len(*vals) > 0 {
+				val := MetricInstance{*vals, m}
 				metrics = append(metrics, val)
 			} else {
 				skippedMetrics++
@@ -96,8 +86,22 @@ func extractMetrics(t *spec.TargetSpec, restResponse *string) (*[]MetricInstance
 	return &metrics, skippedMetrics
 }
 
+func extractFromBaseValues(m *spec.MetricSpec, baseVals *[]*jq.Jv) *[]MetricValue {
+	values := make([]MetricValue, 0)
+	for _, base := range *baseVals {
+		numVal := getNumericValue(m, base)
+		if numVal == nil {
+			log.Errorf("Error processing REST input for metric %s: no valid numeric value found", m.Name)
+		} else {
+			labels := getLabels(m, base)
+			values = append(values, MetricValue{numVal, labels})
+		}
+	}
+	return &values
+}
+
 // Does not consume res. Returns int, float64, or nil
-func getValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
+func getNumericValue(m *spec.MetricSpec, res *jq.Jv) interface{} {
 	val := res
 	if m.ValJqInst != nil {
 		subResults, err := m.ValJqInst.ProcessInputJv(res)
