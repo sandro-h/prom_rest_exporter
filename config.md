@@ -41,6 +41,7 @@ The prom_rest_exporter configuration is a YAML file. It defines one or more `/me
 | user        | No       | Username for basic authentication         |
 | password    | No       | Password for basic authentication         |
 | headers     | No       | Additional headers to add to REST request |
+| insecure    | No       | Do not check certificate of https endpoint. |
 
 ### Metric options
 
@@ -203,6 +204,8 @@ endpoints:
         # Additional HTTP headers for the REST request
         headers:
           My-Header: my-value
+        # Do not check certificate of https endpoint
+        insecure: yes
         # Metrics to create from the REST data
         metrics:
           - name: user_count

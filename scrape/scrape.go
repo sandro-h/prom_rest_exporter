@@ -1,6 +1,7 @@
 package scrape
 
 import (
+	"crypto/tls"
 	"github.com/sandro-h/prom_rest_exporter/jq"
 	"github.com/sandro-h/prom_rest_exporter/spec"
 	log "github.com/sirupsen/logrus"
@@ -47,7 +48,7 @@ func ScrapeTargets(ts []*spec.TargetSpec, inclMetaMetrics bool) []MetricInstance
 func scrapeTarget(t *spec.TargetSpec, metas *map[string]*MetricInstance) (*[]MetricInstance, error) {
 	log.Debugf("Scraping target %s", t.URL)
 	tm := getNow()
-	restResponse, err := fetch(t.URL, t.User, t.Password, &t.Headers)
+	restResponse, err := fetch(t.URL, t.User, t.Password, &t.Headers, t.Insecure)
 	fetchDuration := getNow().Sub(tm)
 	if err != nil {
 		return nil, err
@@ -204,7 +205,7 @@ func addMetaMetric(metas *map[string]*MetricInstance, m MetricInstance) {
 }
 
 // Fetch makes a request to the url and returns the response as a string
-func fetch(url string, user string, pwd string, headers *map[string]string) (string, error) {
+func fetch(url string, user string, pwd string, headers *map[string]string, insecure bool) (string, error) {
 	if strings.HasPrefix(url, "file://") {
 		data, err := ioutil.ReadFile(url[7:])
 		if err != nil {
@@ -213,7 +214,6 @@ func fetch(url string, user string, pwd string, headers *map[string]string) (str
 		return string(data), nil
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", err
@@ -228,6 +228,7 @@ func fetch(url string, user string, pwd string, headers *map[string]string) (str
 		}
 	}
 
+	client := createClient(insecure)
 	response, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -237,4 +238,15 @@ func fetch(url string, user string, pwd string, headers *map[string]string) (str
 		return "", err
 	}
 	return string(data), nil
+}
+
+func createClient(insecure bool) *http.Client {
+	if insecure {
+		defaultTransport := http.DefaultTransport.(*http.Transport)
+		tr := *defaultTransport
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		return &http.Client{Transport: &tr}
+	} else {
+		return &http.Client{}
+	}
 }

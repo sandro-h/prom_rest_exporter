@@ -26,6 +26,7 @@ type TargetSpec struct {
 	User     string
 	Password string
 	Headers  map[string]string
+	Insecure bool
 	Metrics  []*MetricSpec
 }
 
