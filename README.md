@@ -9,7 +9,14 @@ prom_rest_exporter translates arbitrary REST endpoints to metrics for [Prometheu
 
 It uses the excellent [jq](https://github.com/stedolan/jq) to transform JSON responses to numeric metric values.
 
-prom_rest_exporter runs as a process exposing one or more `/metrics` endpoints for Prometheus.
+prom_rest_exporter runs as a separate process exposing one or more `/metrics` endpoints for Prometheus.
+
+## Motivation
+
+Sometimes you want to monitor third-party applications that do not provide Prometheus-compatible metrics.  
+If they provide other REST endpoints with valuable monitoring information, you can use prom_rest_exporter to make these available to Prometheus.
+
+**Note**: if possible, it's preferable to adapt the application to provide Prometheus metrics directly. This avoids operational complexity of running prom_rest_exporter in addition to the application.
 
 ## Installation
 
